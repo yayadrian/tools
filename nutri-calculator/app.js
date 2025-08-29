@@ -7,6 +7,16 @@
   const sliceResults = document.getElementById('slice-results');
   const slicesInput = document.getElementById('slices');
 
+  const DEFAULT_INGREDIENTS = [
+    { name: 'Strong white bread flour', weight_g: 500, kcal_per_100g: 361, protein_per_100g: 12, fibre_per_100g: 2.4 },
+    { name: 'Salt', weight_g: 12, kcal_per_100g: 0, protein_per_100g: 0, fibre_per_100g: 0 },
+    { name: 'Sugar', weight_g: 9, kcal_per_100g: 375, protein_per_100g: 0, fibre_per_100g: 0 },
+    { name: "Dried yeast", weight_g: 14, kcal_per_100g: 325, protein_per_100g: 40.4, fibre_per_100g: 26.9 },
+    { name: 'Vegetable oil', weight_g: 27, kcal_per_100g: 857, protein_per_100g: 0, fibre_per_100g: 0 },
+    { name: 'Water', weight_g: 300, kcal_per_100g: 0, protein_per_100g: 0, fibre_per_100g: 0 },
+    { name: 'Skimmed milk powder', weight_g: 13, kcal_per_100g: 348, protein_per_100g: 34.8, fibre_per_100g: 0 }
+  ];
+
   function addIngredientRow(data = {}) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -143,6 +153,8 @@
     slicesInput.value = saved.slices || 12;
     saved.ingredients.forEach(ing => addIngredientRow(ing));
   } else {
-    addIngredientRow();
+    slicesInput.value = 12;
+    DEFAULT_INGREDIENTS.forEach(ing => addIngredientRow(ing));
+    saveToLocalStorage(readStateFromDOM());
   }
 })();
