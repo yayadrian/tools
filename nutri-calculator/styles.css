@@ -1,0 +1,79 @@
+body {
+  font-family: sans-serif;
+  margin: 1rem;
+  line-height: 1.4;
+}
+
+h1 {
+  text-align: center;
+}
+
+section {
+  margin-bottom: 1.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+button {
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.card {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+input.invalid {
+  border-color: red;
+}
+
+@media (max-width: 600px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  tr {
+    border: 1px solid #ccc;
+    margin-bottom: 0.5rem;
+  }
+
+  td {
+    border: none;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  td:before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 45%;
+    padding-left: 0.5rem;
+    font-weight: bold;
+  }
+
+  td:nth-of-type(1):before { content: "Ingredient"; }
+  td:nth-of-type(2):before { content: "Weight (g)"; }
+  td:nth-of-type(3):before { content: "Calories per 100 g (kcal)"; }
+  td:nth-of-type(4):before { content: "Protein per 100 g (g)"; }
+  td:nth-of-type(5):before { content: "Fibre per 100 g (g)"; }
+  td:nth-of-type(6):before { content: "Remove"; }
+}
