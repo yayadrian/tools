@@ -50,5 +50,3 @@ Author small, focused utilities quickly and predictably. Keep dependencies minim
   2. Confirm adherence.
   3. Apply the rules to the new tool.
 
-END OF RULES
-–– end ––
