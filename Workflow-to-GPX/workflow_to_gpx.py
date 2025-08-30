@@ -7,7 +7,7 @@ Convert JSON location tracks to GPX files.
 Usage:
   uv run workflow_to_gpx.py [src] [dest]
 
-src  folder with json files (default: current directory)
+src  folder with JSON files, searched recursively, or a single JSON file (default: current directory)
 dest folder for GPX output (default: same as src)
 """
 from __future__ import annotations
@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List
@@ -82,15 +83,35 @@ def format_start_time(track: Track) -> tuple[str, str]:
     time = "000000"
   return date, time
 
-def process_file(path: str, dest: str) -> int:
-  with open(path, "r", encoding="utf-8") as f:
-    data = json.load(f)
+def _slug(s: str) -> str:
+  # Keep letters, numbers, dash and underscore; replace others with '-'
+  s = re.sub(r"[\s/\\]+", "-", s.strip())
+  s = re.sub(r"[^A-Za-z0-9._-]", "-", s)
+  s = re.sub(r"-+", "-", s)
+  return s.strip("-_")
+
+def process_file(path: str, dest: str, rel_hint: str | None = None) -> int:
+  try:
+    with open(path, "r", encoding="utf-8") as f:
+      data = json.load(f)
+  except Exception as e:  # noqa: BLE001 - best-effort batch conversion
+    print(f"Skipping {path}: {e}")
+    return 0
+
   tracks = find_tracks(data)
   written = 0
+
+  # Build a safe prefix from either relpath or filename stem
+  if rel_hint:
+    prefix_base = os.path.splitext(rel_hint)[0]
+  else:
+    prefix_base = os.path.splitext(os.path.basename(path))[0]
+  prefix = _slug(prefix_base)
+
   for idx, track in enumerate(tracks, start=1):
     tree = track_to_gpx(track)
     date, time = format_start_time(track)
-    filename = f"{date}_{time}_track{idx:02d}.gpx"
+    filename = f"{prefix}_{date}_{time}_track{idx:02d}.gpx" if prefix else f"{date}_{time}_track{idx:02d}.gpx"
     out_path = os.path.join(dest, filename)
     tree.write(out_path, encoding="utf-8", xml_declaration=True)
     written += 1
@@ -106,11 +127,26 @@ def main() -> None:
   dest = os.path.abspath(args.dest or args.src)
   os.makedirs(dest, exist_ok=True)
 
-  count = 0
-  for name in os.listdir(src):
-    if name.lower().endswith(".json"):
-      count += process_file(os.path.join(src, name), dest)
-  print(f"Written {count} track(s) to {dest}")
+  total_tracks = 0
+  total_files = 0
+
+  if os.path.isfile(src):
+    if src.lower().endswith(".json"):
+      total_tracks += process_file(src, dest)
+      total_files = 1
+    else:
+      print(f"Source is a file but not JSON: {src}")
+  else:
+    # Walk recursively and process all .json files
+    for root, _dirs, files in os.walk(src):
+      for name in files:
+        if name.lower().endswith(".json"):
+          file_path = os.path.join(root, name)
+          rel = os.path.relpath(file_path, src)
+          total_tracks += process_file(file_path, dest, rel_hint=rel)
+          total_files += 1
+
+  print(f"Processed {total_files} file(s); written {total_tracks} track(s) to {dest}")
 
 if __name__ == "__main__":
   main()
