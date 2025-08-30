@@ -1,38 +1,81 @@
+:root {
+  --primary: #007bff;
+  --secondary: #6c757d;
+  --bg: #f6f8fa;
+  --text: #333;
+  --radius: 8px;
+}
+
 body {
-  font-family: sans-serif;
-  margin: 1rem;
-  line-height: 1.4;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
 }
 
-h1 {
+.container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+header h1 {
   text-align: center;
+  font-weight: 600;
+  margin-bottom: 2rem;
 }
 
-section {
+.form-section {
   margin-bottom: 1.5rem;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
+th,
+td {
+  border: 1px solid #e0e0e0;
+  padding: 0.75rem;
   text-align: left;
 }
 
+th {
+  background: #fafafa;
+}
+
 button {
-  margin-right: 0.5rem;
-  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+}
+
+button.primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+button.secondary {
+  background: var(--secondary);
+  color: #fff;
+}
+
+button + button {
+  margin-left: 0.5rem;
 }
 
 .card {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 input.invalid {
@@ -40,7 +83,12 @@ input.invalid {
 }
 
 @media (max-width: 600px) {
-  table, thead, tbody, th, td, tr {
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
     display: block;
   }
 
@@ -53,12 +101,15 @@ input.invalid {
   tr {
     border: 1px solid #ccc;
     margin-bottom: 0.5rem;
+    border-radius: var(--radius);
+    overflow: hidden;
   }
 
   td {
     border: none;
     position: relative;
     padding-left: 50%;
+    border-bottom: 1px solid #eee;
   }
 
   td:before {
@@ -67,13 +118,26 @@ input.invalid {
     left: 0;
     width: 45%;
     padding-left: 0.5rem;
-    font-weight: bold;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
-  td:nth-of-type(1):before { content: "Ingredient"; }
-  td:nth-of-type(2):before { content: "Weight (g)"; }
-  td:nth-of-type(3):before { content: "Calories per 100 g (kcal)"; }
-  td:nth-of-type(4):before { content: "Protein per 100 g (g)"; }
-  td:nth-of-type(5):before { content: "Fibre per 100 g (g)"; }
-  td:nth-of-type(6):before { content: "Remove"; }
+  td:nth-of-type(1):before {
+    content: "Ingredient";
+  }
+  td:nth-of-type(2):before {
+    content: "Weight (g)";
+  }
+  td:nth-of-type(3):before {
+    content: "Calories per 100 g (kcal)";
+  }
+  td:nth-of-type(4):before {
+    content: "Protein per 100 g (g)";
+  }
+  td:nth-of-type(5):before {
+    content: "Fibre per 100 g (g)";
+  }
+  td:nth-of-type(6):before {
+    content: "Remove";
+  }
 }
