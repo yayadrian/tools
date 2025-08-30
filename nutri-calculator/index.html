@@ -1,47 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bread Nutrition Calculator</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <main>
-    <h1>Bread Nutrition Calculator</h1>
-    <form id="recipe-form">
-      <section id="recipe-header">
-        <label for="slices">Number of slices</label>
-        <input type="number" id="slices" min="1" value="12" aria-describedby="slices-help">
-        <small id="slices-help">e.g., 12</small>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bread Nutrition Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Bread Nutrition Calculator</h1>
+      </header>
+      <form id="recipe-form" class="card">
+        <section id="recipe-header" class="form-section">
+          <label for="slices">Number of slices</label>
+          <input
+            type="number"
+            id="slices"
+            min="1"
+            value="12"
+            aria-describedby="slices-help"
+          />
+          <small id="slices-help">e.g., 12</small>
+        </section>
+        <section id="ingredient-section" class="form-section">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Ingredient</th>
+                <th scope="col">Weight (g)</th>
+                <th scope="col">Calories per 100 g (kcal)</th>
+                <th scope="col">Protein per 100 g (g)</th>
+                <th scope="col">Fibre per 100 g (g)</th>
+                <th scope="col"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="ingredient-body"></tbody>
+          </table>
+          <button type="button" id="add-ingredient" class="secondary">
+            Add ingredient
+          </button>
+        </section>
+        <section id="actions">
+          <button type="button" id="calculate" class="primary">
+            Calculate
+          </button>
+          <button type="reset" id="reset" class="secondary">Reset</button>
+        </section>
+      </form>
+      <section id="results">
+        <div class="card" id="loaf-results" aria-live="polite"></div>
+        <div class="card" id="slice-results" aria-live="polite"></div>
       </section>
-      <section id="ingredient-section">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Ingredient</th>
-              <th scope="col">Weight (g)</th>
-              <th scope="col">Calories per 100 g (kcal)</th>
-              <th scope="col">Protein per 100 g (g)</th>
-              <th scope="col">Fibre per 100 g (g)</th>
-              <th scope="col">Remove</th>
-            </tr>
-          </thead>
-          <tbody id="ingredient-body">
-          </tbody>
-        </table>
-        <button type="button" id="add-ingredient">Add ingredient</button>
-      </section>
-      <section id="actions">
-        <button type="button" id="calculate">Calculate</button>
-        <button type="reset" id="reset">Reset</button>
-      </section>
-    </form>
-    <section id="results">
-      <div class="card" id="loaf-results" aria-live="polite"></div>
-      <div class="card" id="slice-results" aria-live="polite"></div>
-    </section>
-  </main>
-  <script defer src="app.js"></script>
-</body>
+    </main>
+    <script defer src="app.js"></script>
+  </body>
 </html>
