@@ -21,9 +21,42 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
+    flex-wrap: wrap;
   }
   .header-content {
     flex: 1;
+  }
+  .header-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+    min-width: 220px;
+  }
+  .slider-control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+    background: white;
+    border: 2px solid #222;
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    width: clamp(200px, 32vw, 260px);
+  }
+  .slider-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #222;
+  }
+  .slider-value {
+    font-size: 0.85rem;
+    color: #444;
+  }
+  .slider-input {
+    width: 100%;
+    accent-color: #222;
   }
   .unit-toggle {
     display: inline-flex;
@@ -110,11 +143,18 @@
   <header>
     <div class="header-content">
       <h1>Central Circle</h1>
-      <p id="description">Click anywhere on the map to draw concentric distance rings around that point. Circles are drawn at 50, 100, 200, 300 kilometres</p>
+  <p id="description">Click anywhere on the map to draw concentric distance rings around that point. Use the slider to change the spacing between the circles.</p>
     </div>
-    <div class="unit-toggle" role="radiogroup" aria-label="Choose measurement units">
-  <button type="button" class="unit-option active" data-unit="km" role="radio" aria-checked="true" aria-pressed="true" aria-label="Use kilometres" tabindex="0">Km</button>
-  <button type="button" class="unit-option" data-unit="mi" role="radio" aria-checked="false" aria-pressed="false" aria-label="Use miles" tabindex="-1">Miles</button>
+    <div class="header-controls">
+      <div class="slider-control">
+        <label for="ring-spacing-slider" class="slider-label">Ring spacing</label>
+        <div id="ring-spacing-value" class="slider-value" aria-live="polite">50 km</div>
+        <input type="range" id="ring-spacing-slider" min="10" max="150" step="5" value="50" class="slider-input" aria-label="Adjust ring spacing in kilometres" aria-valuemin="10" aria-valuemax="150" aria-valuenow="50">
+      </div>
+      <div class="unit-toggle" role="radiogroup" aria-label="Choose measurement units">
+        <button type="button" class="unit-option active" data-unit="km" role="radio" aria-checked="true" aria-pressed="true" aria-label="Use kilometres" tabindex="0">Km</button>
+        <button type="button" class="unit-option" data-unit="mi" role="radio" aria-checked="false" aria-pressed="false" aria-label="Use miles" tabindex="-1">Miles</button>
+      </div>
     </div>
   </header>
   <main>
@@ -138,26 +178,55 @@ document.addEventListener('DOMContentLoaded', function() {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 
-  // Distances in kilometres for each concentric ring.
-  const ringDistancesKm = [50, 100, 200, 300];
-  
-  // Unit system: true = miles, false = kilometres
-  let useMiles = false;
-  
+  const baseMultipliers = [1, 2, 4, 6];
+
   // Get DOM elements
   const unitOptions = Array.from(document.querySelectorAll('.unit-option'));
   const description = document.getElementById('description');
+  const ringSpacingSlider = document.getElementById('ring-spacing-slider');
+  const ringSpacingValue = document.getElementById('ring-spacing-value');
+
+  // Unit system: true = miles, false = kilometres
+  let useMiles = false;
+  let baseSpacingKm = Number(ringSpacingSlider.value);
   
+  function getRingDistancesKm() {
+    return baseMultipliers.map(multiplier => baseSpacingKm * multiplier);
+  }
+
+  function getDistancesForDisplay() {
+    const ringDistances = getRingDistancesKm();
+    return useMiles
+      ? ringDistances.map(distanceKm => Math.round(distanceKm * 0.621371))
+      : ringDistances.map(distanceKm => Math.round(distanceKm));
+  }
+
   function updateDescription() {
-    const distances = useMiles 
-      ? [31, 62, 124, 186]  // Approximate mile equivalents
-      : [50, 100, 200, 300];
+    const distances = getDistancesForDisplay();
     const unit = useMiles ? 'miles' : 'kilometres';
-    description.textContent = `Click anywhere on the map to draw concentric distance rings around that point. Circles are drawn at ${distances.join(', ')} ${unit}`;
+    description.textContent = `Click anywhere on the map to draw concentric distance rings around that point. Use the slider to change the spacing. Circles are currently at ${distances.join(', ')} ${unit}`;
+  }
+
+  function updateSliderDisplay() {
+    const displayValue = useMiles
+      ? Math.round(baseSpacingKm * 0.621371)
+      : Math.round(baseSpacingKm);
+    const unit = useMiles ? 'mi' : 'km';
+    ringSpacingValue.textContent = `${displayValue} ${unit}`;
+    ringSpacingSlider.setAttribute('aria-valuenow', baseSpacingKm.toString());
+    ringSpacingSlider.setAttribute('aria-valuetext', `${displayValue} ${unit}`);
+    ringSpacingSlider.setAttribute('aria-label', `Adjust ring spacing in ${unit === 'km' ? 'kilometres' : 'miles'}`);
   }
 
   const markerLayer = L.layerGroup().addTo(map);
   const ringsLayer = L.layerGroup().addTo(map);
+
+  function refreshRingsIfNeeded() {
+    if (markerLayer.getLayers().length > 0) {
+      const centerMarker = markerLayer.getLayers()[0];
+      drawCentralRings(centerMarker.getLatLng());
+    }
+  }
 
   function setUnitSelection(selectedUnit) {
     const shouldUseMiles = selectedUnit === 'mi';
@@ -171,12 +240,9 @@ document.addEventListener('DOMContentLoaded', function() {
       option.setAttribute('tabindex', isActive ? '0' : '-1');
     });
 
+    updateSliderDisplay();
     updateDescription();
-
-    if (markerLayer.getLayers().length > 0) {
-      const centerMarker = markerLayer.getLayers()[0];
-      drawCentralRings(centerMarker.getLatLng());
-    }
+    refreshRingsIfNeeded();
   }
 
   unitOptions.forEach(option => {
@@ -197,6 +263,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  ringSpacingSlider.addEventListener('input', () => {
+    baseSpacingKm = Number(ringSpacingSlider.value);
+    updateSliderDisplay();
+    updateDescription();
+    refreshRingsIfNeeded();
+  });
+
+  updateSliderDisplay();
   setUnitSelection(useMiles ? 'mi' : 'km');
 
   function drawCentralRings(latlng) {
@@ -204,6 +278,8 @@ document.addEventListener('DOMContentLoaded', function() {
     ringsLayer.clearLayers();
 
     L.marker(latlng, { title: 'Selected centre' }).addTo(markerLayer);
+
+    const ringDistancesKm = getRingDistancesKm();
 
     ringDistancesKm.forEach(distanceKm => {
       const radiusMeters = distanceKm * 1000;
@@ -235,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const labelPosition = L.latLng(lat2 * 180 / Math.PI, lon2 * 180 / Math.PI);
 
       // Convert to appropriate unit for display
-      const displayDistance = useMiles ? (distanceKm * 0.621371).toFixed(0) : distanceKm;
+      const displayDistance = useMiles ? Math.round(distanceKm * 0.621371) : Math.round(distanceKm);
       const unit = useMiles ? 'mi' : 'km';
 
       // Add label marker at the calculated position
