@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webcam Tiles</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <style>
+    :root {
+      color-scheme: dark light;
+      --bg: #0f172a;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --accent: #38bdf8;
+      --border: rgba(148, 163, 184, 0.3);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), transparent 60%),
+                  radial-gradient(circle at 80% 0%, rgba(249, 115, 22, 0.1), transparent 65%),
+                  var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: clamp(1.5rem, 3vw, 3rem);
+      gap: 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      max-width: 800px;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 2.8vw, 3rem);
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .app {
+      width: min(1200px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .control-panel {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+    }
+
+    .control-panel form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      flex: 2 1 320px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    input[type="url"],
+    select {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.65);
+      color: var(--text);
+      padding: 0.75rem 0.9rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      min-width: 260px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="url"]:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(56, 189, 248, 0.75);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 600;
+      padding: 0.85rem 1.4rem;
+      border-radius: 0.85rem;
+      font-size: 1rem;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.35);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(56, 189, 248, 0.45);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .layout-control {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1 1 160px;
+    }
+
+    .tiles {
+      --columns: 1;
+      display: grid;
+      gap: 1.2rem;
+      grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+    }
+
+    .tile {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 1rem;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      flex-direction: column;
+      min-height: 200px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      object-fit: contain;
+      flex: 1;
+    }
+
+    .tile-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 0.9rem;
+      gap: 0.75rem;
+      background: rgba(15, 23, 42, 0.7);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .stream-url {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      color: var(--muted);
+    }
+
+    .tile-actions a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .tile-remove {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 2.2rem;
+      height: 2.2rem;
+      border-radius: 999px;
+      border: none;
+      display: grid;
+      place-items: center;
+      background: rgba(15, 23, 42, 0.65);
+      color: var(--text);
+      font-size: 1.2rem;
+      font-weight: 700;
+      box-shadow: none;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .tile-remove:hover {
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+      transform: scale(1.02);
+    }
+
+    .tile-remove:active {
+      transform: scale(0.98);
+    }
+
+    .empty-state {
+      border: 1px dashed rgba(148, 163, 184, 0.35);
+      border-radius: 1rem;
+      padding: 2.5rem;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.45);
+      font-size: 1.05rem;
+    }
+
+    .assistive {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 1.2rem;
+      }
+
+      .control-panel {
+        padding: 1rem;
+      }
+
+      input[type="url"],
+      select {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Webcam Tiles</h1>
+    <p>Bring together one or more HLS webcam feeds, arrange them into flexible tiles, and monitor them side-by-side.</p>
+  </header>
+
+  <main class="app" aria-live="polite">
+    <section class="control-panel" aria-label="Stream controls">
+      <form id="addStreamForm">
+        <label for="streamUrl">
+          Stream URL
+          <input type="url" id="streamUrl" name="streamUrl" placeholder="https://example.com/stream.m3u8" required>
+        </label>
+        <button type="submit">Add stream</button>
+        <p class="assistive">Supports HLS (.m3u8) webcam feeds. Streams start muted to help autoplay.</p>
+      </form>
+      <div class="layout-control">
+        <label for="layoutSelect">Layout</label>
+        <select id="layoutSelect" name="layout">
+          <option value="auto" selected>Auto (fill space)</option>
+          <option value="1">1 column</option>
+          <option value="2">2 columns</option>
+          <option value="3">3 columns</option>
+          <option value="4">4 columns</option>
+        </select>
+        <p class="assistive">Choose how many columns to display. Auto adapts to your stream count.</p>
+      </div>
+    </section>
+
+    <section class="tiles" id="tiles" aria-label="Webcam streams"></section>
+    <p class="empty-state" id="emptyState">No streams yet. Add your first webcam feed using the form above.</p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.6/dist/hls.min.js" integrity="sha384-toKuXBP6vEdLlzhGst6hc+Q3wxSsrNv5jw5y+6dQ76G9Syk7NZWfgICPLFlMJK/t" crossorigin="anonymous"></script>
+  <script>
+    (function () {
+      const tiles = document.getElementById('tiles');
+      const emptyState = document.getElementById('emptyState');
+      const form = document.getElementById('addStreamForm');
+      const urlInput = document.getElementById('streamUrl');
+      const layoutSelect = document.getElementById('layoutSelect');
+      const hlsPlayers = new Map();
+
+      function updateEmptyState() {
+        emptyState.hidden = tiles.children.length > 0;
+      }
+
+      function computeAutoColumns(count) {
+        if (count <= 1) return 1;
+        if (count === 2) return 2;
+        const columns = Math.ceil(Math.sqrt(count));
+        return Math.max(columns, 1);
+      }
+
+      function updateLayout() {
+        const count = tiles.children.length;
+        const selection = layoutSelect.value;
+        let columns = 1;
+
+        if (selection === 'auto') {
+          columns = computeAutoColumns(count);
+        } else {
+          columns = parseInt(selection, 10) || 1;
+        }
+
+        tiles.style.setProperty('--columns', columns);
+      }
+
+      function createTile(url) {
+        const tile = document.createElement('article');
+        tile.className = 'tile';
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'tile-remove';
+        removeButton.setAttribute('aria-label', 'Remove stream');
+        removeButton.textContent = '×';
+
+        const video = document.createElement('video');
+        video.controls = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.setAttribute('preload', 'auto');
+
+        const footer = document.createElement('footer');
+        footer.className = 'tile-footer';
+
+        const urlLabel = document.createElement('span');
+        urlLabel.className = 'stream-url';
+        urlLabel.title = url;
+        urlLabel.textContent = url;
+
+        const actions = document.createElement('div');
+        actions.className = 'tile-actions';
+
+        const openLink = document.createElement('a');
+        openLink.href = url;
+        openLink.target = '_blank';
+        openLink.rel = 'noopener noreferrer';
+        openLink.textContent = 'Open stream';
+
+        actions.appendChild(openLink);
+        footer.appendChild(urlLabel);
+        footer.appendChild(actions);
+
+        tile.appendChild(removeButton);
+        tile.appendChild(video);
+        tile.appendChild(footer);
+
+        removeButton.addEventListener('click', function () {
+          removeTile(tile, video);
+        });
+
+        attachStream(video, url);
+        tiles.appendChild(tile);
+        updateEmptyState();
+        updateLayout();
+      }
+
+      function removeTile(tile, video) {
+        const hlsInstance = hlsPlayers.get(video);
+        if (hlsInstance) {
+          hlsInstance.destroy();
+          hlsPlayers.delete(video);
+        }
+
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        tile.remove();
+        updateEmptyState();
+        updateLayout();
+      }
+
+      function attachStream(video, url) {
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = url;
+        } else if (window.Hls && window.Hls.isSupported()) {
+          const hls = new Hls({
+            enableWorker: true,
+            backBufferLength: 90,
+            maxLoadingTimeout: 30000, // 30 seconds
+            maxRetries: 3, // Retry up to 3 times on errors
+          });
+          hls.loadSource(url);
+          hls.attachMedia(video);
+          hlsPlayers.set(video, hls);
+        } else {
+          video.src = url;
+        }
+
+        const tryPlay = () => {
+          const playPromise = video.play();
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+              // Autoplay might be blocked; keep controls enabled so the user can start playback.
+            });
+          }
+        };
+
+        video.addEventListener('loadedmetadata', tryPlay, { once: true });
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const url = urlInput.value.trim();
+        if (!url) {
+          return;
+        }
+
+        createTile(url);
+        form.reset();
+        urlInput.focus();
+      });
+
+      layoutSelect.addEventListener('change', updateLayout);
+
+      updateEmptyState();
+      updateLayout();
+    })();
+  </script>
+</body>
+</html>
