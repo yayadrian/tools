@@ -390,6 +390,8 @@
           const hls = new Hls({
             enableWorker: true,
             backBufferLength: 90,
+            maxLoadingTimeout: 30000, // 30 seconds
+            maxRetries: 3, // Retry up to 3 times on errors
           });
           hls.loadSource(url);
           hls.attachMedia(video);
