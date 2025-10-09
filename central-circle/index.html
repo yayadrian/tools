@@ -136,8 +136,131 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     white-space: nowrap;
   }
+  .video-config {
+    background: white;
+    border: 2px solid #222;
+    border-radius: 12px;
+    padding: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-bottom: 1rem;
+  }
+  .video-config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .video-config-header h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .collapse-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: transform 0.2s;
+  }
+  .collapse-toggle.collapsed {
+    transform: rotate(-90deg);
+  }
+  .video-config-content {
+    margin-top: 0.75rem;
+  }
+  .video-config-content.hidden {
+    display: none;
+  }
+  .video-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .video-form input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  .video-form button {
+    padding: 0.5rem 1rem;
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .video-form button:hover {
+    background: #444;
+  }
+  .video-feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .video-feed-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+  }
+  .video-feed-name {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .video-feed-controls {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .video-feed-controls button {
+    padding: 0.25rem 0.5rem;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+  }
+  .video-feed-controls button:hover {
+    background: #f0f0f0;
+  }
+  .video-feed-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .video-container {
+    margin-top: 1rem;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+  .video-tile {
+    background: #000;
+    border: 2px solid #222;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+  }
+  .video-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
   </style>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.6/dist/hls.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <header>
@@ -158,6 +281,20 @@
     </div>
   </header>
   <main>
+    <div class="video-config">
+      <div class="video-config-header" id="videoConfigHeader">
+        <h2>Video Feeds</h2>
+        <button class="collapse-toggle" id="collapseToggle" aria-label="Toggle video configuration">▼</button>
+      </div>
+      <div class="video-config-content" id="videoConfigContent">
+        <form class="video-form" id="videoForm">
+          <input type="url" id="videoUrl" placeholder="https://example.com/stream.m3u8" required>
+          <button type="submit">Add Feed</button>
+        </form>
+        <div class="video-feed-list" id="videoFeedList"></div>
+      </div>
+    </div>
+    <div class="video-container" id="videoContainer"></div>
     <div id="map" role="region" aria-label="Interactive map for drawing concentric circles"></div>
   </main>
   <footer>
@@ -165,18 +302,222 @@
   </footer>
   <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize the map
-  const map = L.map('map', {
-    center: [51.5074, -0.1278],
-    zoom: 7,
-    worldCopyJump: true
+  // Video Feed Management - initialized first to ensure it works even if map fails
+  const videoForm = document.getElementById('videoForm');
+  const videoUrlInput = document.getElementById('videoUrl');
+  const videoFeedList = document.getElementById('videoFeedList');
+  const videoContainer = document.getElementById('videoContainer');
+  const videoConfigHeader = document.getElementById('videoConfigHeader');
+  const videoConfigContent = document.getElementById('videoConfigContent');
+  const collapseToggle = document.getElementById('collapseToggle');
+  
+  const hlsPlayers = new Map();
+  let videoFeeds = [];
+
+  // Collapse/expand functionality
+  videoConfigHeader.addEventListener('click', () => {
+    const isCollapsed = videoConfigContent.classList.toggle('hidden');
+    collapseToggle.classList.toggle('collapsed', isCollapsed);
+    collapseToggle.setAttribute('aria-expanded', !isCollapsed);
   });
 
-  // Add OpenStreetMap tile layer
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+  // Extract feed name from URL
+  function getFeedName(url) {
+    try {
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      const filename = pathname.split('/').pop();
+      // Remove extension if present
+      return filename.replace(/\.[^/.]+$/, '') || 'Feed';
+    } catch {
+      return 'Feed';
+    }
+  }
+
+  // Render video feed list
+  function renderFeedList() {
+    videoFeedList.innerHTML = '';
+    
+    videoFeeds.forEach((feed, index) => {
+      const item = document.createElement('div');
+      item.className = 'video-feed-item';
+      
+      const name = document.createElement('span');
+      name.className = 'video-feed-name';
+      name.textContent = feed.name;
+      
+      const controls = document.createElement('div');
+      controls.className = 'video-feed-controls';
+      
+      const upBtn = document.createElement('button');
+      upBtn.textContent = '↑';
+      upBtn.title = 'Move up';
+      upBtn.disabled = index === 0;
+      upBtn.addEventListener('click', () => moveUp(index));
+      
+      const downBtn = document.createElement('button');
+      downBtn.textContent = '↓';
+      downBtn.title = 'Move down';
+      downBtn.disabled = index === videoFeeds.length - 1;
+      downBtn.addEventListener('click', () => moveDown(index));
+      
+      const reloadBtn = document.createElement('button');
+      reloadBtn.textContent = '↻';
+      reloadBtn.title = 'Reload feed';
+      reloadBtn.addEventListener('click', () => reloadFeed(index));
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '✕';
+      deleteBtn.title = 'Delete feed';
+      deleteBtn.addEventListener('click', () => deleteFeed(index));
+      
+      controls.appendChild(upBtn);
+      controls.appendChild(downBtn);
+      controls.appendChild(reloadBtn);
+      controls.appendChild(deleteBtn);
+      
+      item.appendChild(name);
+      item.appendChild(controls);
+      videoFeedList.appendChild(item);
+    });
+  }
+
+  // Render video tiles
+  function renderVideoTiles() {
+    videoContainer.innerHTML = '';
+    
+    videoFeeds.forEach((feed) => {
+      const tile = document.createElement('div');
+      tile.className = 'video-tile';
+      
+      const video = document.createElement('video');
+      video.controls = true;
+      video.muted = true;
+      video.playsInline = true;
+      
+      tile.appendChild(video);
+      videoContainer.appendChild(tile);
+      
+      attachStream(video, feed.url);
+    });
+  }
+
+  // Attach stream to video element
+  function attachStream(video, url) {
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+    } else if (window.Hls && window.Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        backBufferLength: 90,
+        maxLoadingTimeout: 30000,
+        maxRetries: 3,
+      });
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hlsPlayers.set(video, hls);
+    } else {
+      video.src = url;
+    }
+    
+    const tryPlay = () => {
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          // Autoplay might be blocked
+        });
+      }
+    };
+    
+    video.addEventListener('loadedmetadata', tryPlay, { once: true });
+  }
+
+  // Clean up HLS player
+  function cleanupVideo(video) {
+    const hlsInstance = hlsPlayers.get(video);
+    if (hlsInstance) {
+      hlsInstance.destroy();
+      hlsPlayers.delete(video);
+    }
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+  }
+
+  // Add feed
+  function addFeed(url) {
+    const name = getFeedName(url);
+    videoFeeds.push({ url, name });
+    renderFeedList();
+    renderVideoTiles();
+  }
+
+  // Move feed up
+  function moveUp(index) {
+    if (index > 0) {
+      [videoFeeds[index - 1], videoFeeds[index]] = [videoFeeds[index], videoFeeds[index - 1]];
+      renderFeedList();
+      renderVideoTiles();
+    }
+  }
+
+  // Move feed down
+  function moveDown(index) {
+    if (index < videoFeeds.length - 1) {
+      [videoFeeds[index], videoFeeds[index + 1]] = [videoFeeds[index + 1], videoFeeds[index]];
+      renderFeedList();
+      renderVideoTiles();
+    }
+  }
+
+  // Reload feed
+  function reloadFeed(index) {
+    const feed = videoFeeds[index];
+    // Get the video element at this index
+    const videos = videoContainer.querySelectorAll('video');
+    if (videos[index]) {
+      cleanupVideo(videos[index]);
+      // Re-attach stream
+      setTimeout(() => {
+        attachStream(videos[index], feed.url);
+      }, 100);
+    }
+  }
+
+  // Delete feed
+  function deleteFeed(index) {
+    const videos = videoContainer.querySelectorAll('video');
+    if (videos[index]) {
+      cleanupVideo(videos[index]);
+    }
+    videoFeeds.splice(index, 1);
+    renderFeedList();
+    renderVideoTiles();
+  }
+
+  // Form submission
+  videoForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const url = videoUrlInput.value.trim();
+    if (url) {
+      addFeed(url);
+      videoUrlInput.value = '';
+    }
+  });
+
+  // Initialize the map (wrapped in try-catch so video feeds still work if map fails)
+  try {
+    const map = L.map('map', {
+      center: [51.5074, -0.1278],
+      zoom: 7,
+      worldCopyJump: true
+    });
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
   const baseMultipliers = [1, 2, 4, 6];
 
@@ -331,6 +672,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Provide an initial example so users see the behaviour immediately.
   drawCentralRings(map.getCenter());
+  } catch (error) {
+    console.error('Map initialization failed:', error);
+    // Map will not be available, but video feeds will still work
+  }
 });
   </script>
 </body>
