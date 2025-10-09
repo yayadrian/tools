@@ -257,24 +257,31 @@
 
   <main class="app" aria-live="polite">
     <section class="control-panel" aria-label="Stream controls">
-      <form id="addStreamForm">
-        <label for="streamUrl">
-          Stream URL
-          <input type="url" id="streamUrl" name="streamUrl" placeholder="https://example.com/stream.m3u8" required>
-        </label>
-        <button type="submit">Add stream</button>
-        <p class="assistive">Supports HLS (.m3u8) webcam feeds. Streams start muted to help autoplay.</p>
-      </form>
-      <div class="layout-control">
-        <label for="layoutSelect">Layout</label>
-        <select id="layoutSelect" name="layout">
-          <option value="auto" selected>Auto (fill space)</option>
-          <option value="1">1 column</option>
-          <option value="2">2 columns</option>
-          <option value="3">3 columns</option>
-          <option value="4">4 columns</option>
-        </select>
-        <p class="assistive">Choose how many columns to display. Auto adapts to your stream count.</p>
+      <button id="toggleConfig" type="button" style="margin-bottom:1rem;">Hide Config ▲</button>
+      <div id="configContent">
+        <form id="addStreamForm">
+          <label for="streamUrl">
+            Stream URL
+            <input type="url" id="streamUrl" name="streamUrl" placeholder="https://example.com/stream.m3u8" required>
+          </label>
+          <button type="submit">Add stream</button>
+          <p class="assistive">Supports HLS (.m3u8) webcam feeds. Streams start muted to help autoplay.</p>
+        </form>
+        <div class="layout-control">
+          <label for="layoutSelect">Layout</label>
+          <select id="layoutSelect" name="layout">
+            <option value="auto" selected>Auto (fill space)</option>
+            <option value="1">1 column</option>
+            <option value="2">2 columns</option>
+            <option value="3">3 columns</option>
+            <option value="4">4 columns</option>
+          </select>
+          <p class="assistive">Choose how many columns to display. Auto adapts to your stream count.</p>
+        </div>
+        <div id="feedListContainer">
+          <h3 style="margin-top:1.5rem;">Current Feeds</h3>
+          <ul id="feedList" style="list-style:none;padding:0;margin:0;"></ul>
+        </div>
       </div>
     </section>
 
@@ -291,6 +298,12 @@
       const urlInput = document.getElementById('streamUrl');
       const layoutSelect = document.getElementById('layoutSelect');
       const hlsPlayers = new Map();
+      const feedList = document.getElementById('feedList');
+      const feedListContainer = document.getElementById('feedListContainer');
+      const toggleConfig = document.getElementById('toggleConfig');
+      const configContent = document.getElementById('configContent');
+
+      let feeds = [];
 
       function updateEmptyState() {
         emptyState.hidden = tiles.children.length > 0;
@@ -307,14 +320,99 @@
         const count = tiles.children.length;
         const selection = layoutSelect.value;
         let columns = 1;
-
         if (selection === 'auto') {
           columns = computeAutoColumns(count);
         } else {
           columns = parseInt(selection, 10) || 1;
         }
-
         tiles.style.setProperty('--columns', columns);
+      }
+
+      function getFeedName(url) {
+        let name = url.split('/').pop() || url;
+        name = name.replace(/\.[^/.]+$/, '');
+        return name;
+      }
+
+      function renderFeedList() {
+        feedList.innerHTML = '';
+        feeds.forEach((feed, idx) => {
+          const li = document.createElement('li');
+          li.style.display = 'flex';
+          li.style.alignItems = 'center';
+          li.style.gap = '0.5rem';
+          li.style.marginBottom = '0.5rem';
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = getFeedName(feed.url);
+          nameSpan.title = feed.url;
+          nameSpan.style.flex = '1';
+
+          const upBtn = document.createElement('button');
+          upBtn.textContent = '▲';
+          upBtn.title = 'Move up';
+          upBtn.disabled = idx === 0;
+          upBtn.onclick = () => moveFeed(idx, idx - 1);
+
+          const downBtn = document.createElement('button');
+          downBtn.textContent = '▼';
+          downBtn.title = 'Move down';
+          downBtn.disabled = idx === feeds.length - 1;
+          downBtn.onclick = () => moveFeed(idx, idx + 1);
+
+          const reloadBtn = document.createElement('button');
+          reloadBtn.textContent = '⟳';
+          reloadBtn.title = 'Reload feed';
+          reloadBtn.onclick = () => reloadFeed(idx);
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '✖';
+          delBtn.title = 'Delete feed';
+          delBtn.onclick = () => removeFeed(idx);
+
+          li.appendChild(nameSpan);
+          li.appendChild(upBtn);
+          li.appendChild(downBtn);
+          li.appendChild(reloadBtn);
+          li.appendChild(delBtn);
+          feedList.appendChild(li);
+        });
+      }
+
+      function moveFeed(from, to) {
+        if (to < 0 || to >= feeds.length) return;
+        const [moved] = feeds.splice(from, 1);
+        feeds.splice(to, 0, moved);
+        renderTiles();
+        renderFeedList();
+      }
+
+      function removeFeed(idx) {
+        feeds.splice(idx, 1);
+        renderTiles();
+        renderFeedList();
+      }
+
+      function reloadFeed(idx) {
+        const url = feeds[idx].url;
+        feeds.splice(idx, 1);
+        feeds.splice(idx, 0, { url });
+        renderTiles();
+        renderFeedList();
+      }
+
+      function renderTiles() {
+        // Remove all tiles
+        while (tiles.firstChild) {
+          const tile = tiles.firstChild;
+          const video = tile.querySelector('video');
+          if (video) removeTile(tile, video);
+          else tile.remove();
+        }
+        // Add tiles for each feed
+        feeds.forEach(feed => createTile(feed.url));
+        updateEmptyState();
+        updateLayout();
       }
 
       function createTile(url) {
@@ -326,6 +424,13 @@
         removeButton.className = 'tile-remove';
         removeButton.setAttribute('aria-label', 'Remove stream');
         removeButton.textContent = '×';
+
+        const reloadButton = document.createElement('button');
+        reloadButton.type = 'button';
+        reloadButton.className = 'tile-remove';
+        reloadButton.setAttribute('aria-label', 'Reload stream');
+        reloadButton.textContent = '⟳';
+        reloadButton.style.right = '3.2rem';
 
         const video = document.createElement('video');
         video.controls = true;
@@ -355,17 +460,21 @@
         footer.appendChild(actions);
 
         tile.appendChild(removeButton);
+        tile.appendChild(reloadButton);
         tile.appendChild(video);
         tile.appendChild(footer);
 
         removeButton.addEventListener('click', function () {
-          removeTile(tile, video);
+          const idx = feeds.findIndex(f => f.url === url);
+          if (idx !== -1) removeFeed(idx);
+        });
+        reloadButton.addEventListener('click', function () {
+          const idx = feeds.findIndex(f => f.url === url);
+          if (idx !== -1) reloadFeed(idx);
         });
 
         attachStream(video, url);
         tiles.appendChild(tile);
-        updateEmptyState();
-        updateLayout();
       }
 
       function removeTile(tile, video) {
@@ -374,13 +483,10 @@
           hlsInstance.destroy();
           hlsPlayers.delete(video);
         }
-
         video.pause();
         video.removeAttribute('src');
         video.load();
         tile.remove();
-        updateEmptyState();
-        updateLayout();
       }
 
       function attachStream(video, url) {
@@ -390,8 +496,8 @@
           const hls = new Hls({
             enableWorker: true,
             backBufferLength: 90,
-            maxLoadingTimeout: 30000, // 30 seconds
-            maxRetries: 3, // Retry up to 3 times on errors
+            maxLoadingTimeout: 30000,
+            maxRetries: 3,
           });
           hls.loadSource(url);
           hls.attachMedia(video);
@@ -399,33 +505,37 @@
         } else {
           video.src = url;
         }
-
         const tryPlay = () => {
           const playPromise = video.play();
           if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch(() => {
-              // Autoplay might be blocked; keep controls enabled so the user can start playback.
-            });
+            playPromise.catch(() => {});
           }
         };
-
         video.addEventListener('loadedmetadata', tryPlay, { once: true });
       }
 
       form.addEventListener('submit', function (event) {
         event.preventDefault();
         const url = urlInput.value.trim();
-        if (!url) {
-          return;
-        }
-
-        createTile(url);
+        if (!url) return;
+        feeds.push({ url });
+        renderTiles();
+        renderFeedList();
         form.reset();
         urlInput.focus();
       });
 
       layoutSelect.addEventListener('change', updateLayout);
 
+      // Collapsible config section
+      let configVisible = true;
+      toggleConfig.addEventListener('click', function () {
+        configVisible = !configVisible;
+        configContent.style.display = configVisible ? '' : 'none';
+        toggleConfig.textContent = configVisible ? 'Hide Config ▲' : 'Show Config ▼';
+      });
+
+      renderFeedList();
       updateEmptyState();
       updateLayout();
     })();
