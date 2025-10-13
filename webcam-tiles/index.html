@@ -302,8 +302,42 @@
       const feedListContainer = document.getElementById('feedListContainer');
       const toggleConfig = document.getElementById('toggleConfig');
       const configContent = document.getElementById('configContent');
+      const STORAGE_KEY = 'webcamTiles:feeds';
 
       let feeds = [];
+
+      function loadFeedsFromStorage() {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (!stored) return [];
+          const parsed = JSON.parse(stored);
+          if (!Array.isArray(parsed)) return [];
+          return parsed
+            .map(item => {
+              if (!item || typeof item.url !== 'string') return null;
+              const trimmed = item.url.trim();
+              return trimmed ? { url: trimmed } : null;
+            })
+            .filter(Boolean);
+        } catch (error) {
+          console.warn('Unable to load saved feeds:', error);
+          return [];
+        }
+      }
+
+      function persistFeeds() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(feeds));
+        } catch (error) {
+          console.warn('Unable to save feeds:', error);
+        }
+      }
+
+      function refreshFeedsUI() {
+        renderTiles();
+        renderFeedList();
+        persistFeeds();
+      }
 
       function updateEmptyState() {
         emptyState.hidden = tiles.children.length > 0;
@@ -377,28 +411,26 @@
           li.appendChild(delBtn);
           feedList.appendChild(li);
         });
+        feedListContainer.hidden = feeds.length === 0;
       }
 
       function moveFeed(from, to) {
         if (to < 0 || to >= feeds.length) return;
         const [moved] = feeds.splice(from, 1);
         feeds.splice(to, 0, moved);
-        renderTiles();
-        renderFeedList();
+        refreshFeedsUI();
       }
 
       function removeFeed(idx) {
         feeds.splice(idx, 1);
-        renderTiles();
-        renderFeedList();
+        refreshFeedsUI();
       }
 
       function reloadFeed(idx) {
         const url = feeds[idx].url;
         feeds.splice(idx, 1);
         feeds.splice(idx, 0, { url });
-        renderTiles();
-        renderFeedList();
+        refreshFeedsUI();
       }
 
       function renderTiles() {
@@ -519,8 +551,7 @@
         const url = urlInput.value.trim();
         if (!url) return;
         feeds.push({ url });
-        renderTiles();
-        renderFeedList();
+        refreshFeedsUI();
         form.reset();
         urlInput.focus();
       });
@@ -535,9 +566,8 @@
         toggleConfig.textContent = configVisible ? 'Hide Config ▲' : 'Show Config ▼';
       });
 
-      renderFeedList();
-      updateEmptyState();
-      updateLayout();
+      feeds = loadFeedsFromStorage();
+      refreshFeedsUI();
     })();
   </script>
 </body>
