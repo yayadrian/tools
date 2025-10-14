@@ -190,34 +190,6 @@
       white-space: nowrap;
     }
 
-    .tile-remove {
-      position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
-      width: 2.2rem;
-      height: 2.2rem;
-      border-radius: 999px;
-      border: none;
-      display: grid;
-      place-items: center;
-      background: rgba(15, 23, 42, 0.65);
-      color: var(--text);
-      font-size: 1.2rem;
-      font-weight: 700;
-      box-shadow: none;
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .tile-remove:hover {
-      background: rgba(239, 68, 68, 0.9);
-      color: white;
-      transform: scale(1.02);
-    }
-
-    .tile-remove:active {
-      transform: scale(0.98);
-    }
-
     .empty-state {
       border: 1px dashed rgba(148, 163, 184, 0.35);
       border-radius: 1rem;
@@ -451,19 +423,6 @@
         const tile = document.createElement('article');
         tile.className = 'tile';
 
-        const removeButton = document.createElement('button');
-        removeButton.type = 'button';
-        removeButton.className = 'tile-remove';
-        removeButton.setAttribute('aria-label', 'Remove stream');
-        removeButton.textContent = '×';
-
-        const reloadButton = document.createElement('button');
-        reloadButton.type = 'button';
-        reloadButton.className = 'tile-remove';
-        reloadButton.setAttribute('aria-label', 'Reload stream');
-        reloadButton.textContent = '⟳';
-        reloadButton.style.right = '3.2rem';
-
         const video = document.createElement('video');
         video.controls = true;
         video.muted = true;
@@ -491,19 +450,8 @@
         footer.appendChild(urlLabel);
         footer.appendChild(actions);
 
-        tile.appendChild(removeButton);
-        tile.appendChild(reloadButton);
         tile.appendChild(video);
         tile.appendChild(footer);
-
-        removeButton.addEventListener('click', function () {
-          const idx = feeds.findIndex(f => f.url === url);
-          if (idx !== -1) removeFeed(idx);
-        });
-        reloadButton.addEventListener('click', function () {
-          const idx = feeds.findIndex(f => f.url === url);
-          if (idx !== -1) reloadFeed(idx);
-        });
 
         attachStream(video, url);
         tiles.appendChild(tile);
