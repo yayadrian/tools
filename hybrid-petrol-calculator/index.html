@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hybrid Petrol Calculator</title>
+  <style>*{box-sizing:border-box}</style>
+  <style>
+  :root {
+    color-scheme: light dark;
+    font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    background: #f7f7f8;
+    color: #222;
+  }
+
+  body {
+    margin: 0;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+  }
+
+  main {
+    width: min(680px, 100%);
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  }
+
+  h1 {
+    margin-top: 0;
+    font-size: 1.75rem;
+    line-height: 1.2;
+    color: #0f172a;
+  }
+
+  p.description {
+    margin-bottom: 24px;
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  input[type="number"] {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5f5;
+    font-size: 16px;
+    width: 100%;
+  }
+
+  input[type="number"]:focus {
+    border-color: #6366f1;
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  }
+
+  .hint {
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  .error {
+    font-size: 0.85rem;
+    color: #dc2626;
+    min-height: 1.1em;
+  }
+
+  .results {
+    margin-top: 28px;
+    padding: 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(59,130,246,0.12));
+    color: #0f172a;
+  }
+
+  .results h2 {
+    margin-top: 0;
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+  }
+
+  .result-line {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.4);
+  }
+
+  .result-line:first-of-type {
+    border-top: 0;
+  }
+
+  .result-line strong {
+    font-size: 1.05rem;
+  }
+
+  .result-values {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.05rem;
+  }
+
+  .share-row {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  button.share {
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: none;
+    background: #4f46e5;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  button.share:focus-visible {
+    outline: 3px solid rgba(99, 102, 241, 0.5);
+    outline-offset: 2px;
+  }
+
+  button.share:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+  }
+
+  .share-status {
+    font-size: 0.9rem;
+    color: #16a34a;
+    min-height: 1.1em;
+  }
+
+  .assumptions {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #475569;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    main {
+      background: #111827;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.4);
+    }
+
+    label,
+    .result-line strong,
+    .results,
+    h1 {
+      color: #e2e8f0;
+    }
+
+    input[type="number"] {
+      background: #1f2937;
+      border-color: #334155;
+      color: #e2e8f0;
+    }
+
+    .hint {
+      color: #94a3b8;
+    }
+
+    .results {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(59,130,246,0.18));
+    }
+
+    .assumptions {
+      color: #94a3b8;
+    }
+  }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Hybrid Petrol Calculator</h1>
+    <p class="description">Estimate petrol and electric running costs for your plug-in hybrid using UK units. Adjust the inputs to see live costs per mile and per 100 miles.</p>
+    <form novalidate>
+      <div class="field">
+        <label for="pricePerLitre">Price per litre (UK)</label>
+        <input id="pricePerLitre" name="pricePerLitre" type="number" inputmode="decimal" min="0" step="0.001" placeholder="e.g. 1.49" required>
+        <p class="hint">£ per litre of petrol</p>
+        <p class="error" id="error-pricePerLitre" aria-live="polite"></p>
+      </div>
+      <div class="field">
+        <label for="pricePerKwh">Price per kWh</label>
+        <input id="pricePerKwh" name="pricePerKwh" type="number" inputmode="decimal" min="0" step="0.001" placeholder="e.g. 0.22" required>
+        <p class="hint">£ per kilowatt-hour of electricity</p>
+        <p class="error" id="error-pricePerKwh" aria-live="polite"></p>
+      </div>
+      <div class="field">
+        <label for="mpg">Miles per gallon (UK)</label>
+        <input id="mpg" name="mpg" type="number" inputmode="decimal" min="0" step="0.1" placeholder="e.g. 45" required>
+        <p class="hint">Miles per UK (Imperial) gallon</p>
+        <p class="error" id="error-mpg" aria-live="polite"></p>
+      </div>
+      <div class="field">
+        <label for="milesPerKwh">Miles per kWh (electric efficiency)</label>
+        <input id="milesPerKwh" name="milesPerKwh" type="number" inputmode="decimal" min="0" step="0.1" placeholder="e.g. 3.5" required>
+        <p class="hint">Miles travelled per kilowatt-hour</p>
+        <p class="error" id="error-milesPerKwh" aria-live="polite"></p>
+      </div>
+    </form>
+
+    <section class="results" aria-live="polite" aria-atomic="true">
+      <h2>Results</h2>
+      <div class="result-line">
+        <strong>Petrol</strong>
+        <div class="result-values">
+          <span id="petrolPerMile">£0.000 per mile</span>
+          <span id="petrolPer100">£0.00 per 100 miles</span>
+        </div>
+      </div>
+      <div class="result-line">
+        <strong>Electric</strong>
+        <div class="result-values">
+          <span id="electricPerMile">£0.000 per mile</span>
+          <span id="electricPer100">£0.00 per 100 miles</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="share-row">
+      <button type="button" class="share" id="shareButton">Share current setup</button>
+      <span class="share-status" id="shareStatus" aria-live="polite"></span>
+    </div>
+
+    <p class="assumptions">Assumptions: UK gallon = 4.54609 L. MPG is UK/Imperial.</p>
+  </main>
+
+  <script type="module">
+  const inputs = {
+    pricePerLitre: document.querySelector('#pricePerLitre'),
+    pricePerKwh: document.querySelector('#pricePerKwh'),
+    mpg: document.querySelector('#mpg'),
+    milesPerKwh: document.querySelector('#milesPerKwh')
+  };
+
+  const errors = {
+    pricePerLitre: document.querySelector('#error-pricePerLitre'),
+    pricePerKwh: document.querySelector('#error-pricePerKwh'),
+    mpg: document.querySelector('#error-mpg'),
+    milesPerKwh: document.querySelector('#error-milesPerKwh')
+  };
+
+  const outputs = {
+    petrolPerMile: document.querySelector('#petrolPerMile'),
+    petrolPer100: document.querySelector('#petrolPer100'),
+    electricPerMile: document.querySelector('#electricPerMile'),
+    electricPer100: document.querySelector('#electricPer100')
+  };
+
+  const shareButton = document.querySelector('#shareButton');
+  const shareStatus = document.querySelector('#shareStatus');
+  const LITRES_PER_UK_GALLON = 4.54609;
+
+  function formatMoney(num, decimals = 3) {
+    return `£${num.toFixed(decimals)}`;
+  }
+
+  function readFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    let hasParams = false;
+    for (const key of Object.keys(inputs)) {
+      if (params.has(key)) {
+        const value = parseFloat(params.get(key));
+        if (!Number.isNaN(value)) {
+          inputs[key].value = value;
+          hasParams = true;
+        }
+      }
+    }
+    if (!hasParams) {
+      inputs.pricePerLitre.value = 1.49;
+      inputs.pricePerKwh.value = 0.22;
+      inputs.mpg.value = 45;
+      inputs.milesPerKwh.value = 3.5;
+    }
+  }
+
+  function compute() {
+    let isValid = true;
+    const values = {};
+    for (const [key, input] of Object.entries(inputs)) {
+      const value = parseFloat(input.value);
+      if (Number.isNaN(value) || value <= 0) {
+        errors[key].textContent = 'Enter a value greater than 0';
+        isValid = false;
+      } else {
+        errors[key].textContent = '';
+        values[key] = value;
+      }
+    }
+
+    if (!isValid) {
+      outputs.petrolPerMile.textContent = '—';
+      outputs.petrolPer100.textContent = '—';
+      outputs.electricPerMile.textContent = '—';
+      outputs.electricPer100.textContent = '—';
+      shareStatus.textContent = '';
+      return null;
+    }
+
+    const petrolCostPerMile = (values.pricePerLitre * LITRES_PER_UK_GALLON) / values.mpg;
+    const electricCostPerMile = values.pricePerKwh / values.milesPerKwh;
+
+    outputs.petrolPerMile.textContent = `${formatMoney(petrolCostPerMile, 3)} per mile`;
+    outputs.petrolPer100.textContent = `${formatMoney(petrolCostPerMile * 100, 2)} per 100 miles`;
+    outputs.electricPerMile.textContent = `${formatMoney(electricCostPerMile, 3)} per mile`;
+    outputs.electricPer100.textContent = `${formatMoney(electricCostPerMile * 100, 2)} per 100 miles`;
+
+    return {
+      petrolCostPerMile,
+      electricCostPerMile
+    };
+  }
+
+  function writeToURL(results) {
+    const url = new URL(window.location.href);
+    url.search = '';
+    const params = new URLSearchParams();
+    for (const [key, input] of Object.entries(inputs)) {
+      params.set(key, input.value);
+    }
+    if (results) {
+      params.set('petrolPerMile', results.petrolCostPerMile.toFixed(3));
+      params.set('petrolPer100', (results.petrolCostPerMile * 100).toFixed(2));
+      params.set('electricPerMile', results.electricCostPerMile.toFixed(3));
+      params.set('electricPer100', (results.electricCostPerMile * 100).toFixed(2));
+    }
+    url.search = params.toString();
+    return url.toString();
+  }
+
+  function handleShare() {
+    const results = compute();
+    if (!results) {
+      shareStatus.textContent = 'Fill in all inputs before sharing.';
+      shareStatus.style.color = '#dc2626';
+      return;
+    }
+    const shareURL = writeToURL(results);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareURL)
+        .then(() => {
+          shareStatus.textContent = 'Link copied to clipboard!';
+          shareStatus.style.color = '#16a34a';
+          window.history.replaceState({}, '', shareURL);
+        })
+        .catch(() => {
+          shareStatus.textContent = 'Copy failed. You can manually copy from the address bar.';
+          shareStatus.style.color = '#dc2626';
+        });
+    } else {
+      shareStatus.textContent = 'Clipboard unavailable. Link updated in address bar.';
+      shareStatus.style.color = '#dc2626';
+      window.history.replaceState({}, '', shareURL);
+    }
+  }
+
+  for (const input of Object.values(inputs)) {
+    input.addEventListener('input', () => {
+      const results = compute();
+      if (results) {
+        const url = writeToURL(results);
+        window.history.replaceState({}, '', url);
+        shareStatus.textContent = '';
+      }
+    });
+  }
+
+  shareButton.addEventListener('click', handleShare);
+
+  readFromURL();
+  const initialResults = compute();
+  if (initialResults) {
+    const url = writeToURL(initialResults);
+    window.history.replaceState({}, '', url);
+  }
+  </script>
+</body>
+</html>
