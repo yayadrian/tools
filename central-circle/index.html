@@ -165,6 +165,7 @@
   </footer>
   <script>
 document.addEventListener('DOMContentLoaded', function() {
+  const MILES_TO_KM_RATIO = 0.621371;
   const defaultCenter = { lat: 51.5074, lng: -0.1278 };
   const urlParams = new URLSearchParams(window.location.search);
 
@@ -204,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (spacingParam !== null) {
     const numericSpacing = Number(spacingParam);
     if (Number.isFinite(numericSpacing) && numericSpacing > 0) {
-      let spacingKm = useMiles ? numericSpacing / 0.621371 : numericSpacing;
+      let spacingKm = useMiles ? numericSpacing / MILES_TO_KM_RATIO : numericSpacing;
       spacingKm = Math.round(spacingKm / sliderStep) * sliderStep;
       spacingKm = Math.min(Math.max(spacingKm, sliderMin), sliderMax);
       baseSpacingKm = spacingKm;
@@ -230,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let currentCenter = L.latLng(initialCenter[0], initialCenter[1]);
 
   function getDisplaySpacingRaw() {
-    return useMiles ? baseSpacingKm * 0.621371 : baseSpacingKm;
+    return useMiles ? baseSpacingKm * MILES_TO_KM_RATIO : baseSpacingKm;
   }
 
   function getDisplaySpacingRounded() {
@@ -257,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function getDistancesForDisplay() {
     const ringDistances = getRingDistancesKm();
     return useMiles
-      ? ringDistances.map(distanceKm => Math.round(distanceKm * 0.621371))
+      ? ringDistances.map(distanceKm => Math.round(distanceKm * MILES_TO_KM_RATIO))
       : ringDistances.map(distanceKm => Math.round(distanceKm));
   }
 
@@ -373,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const labelPosition = L.latLng(lat2 * 180 / Math.PI, lon2 * 180 / Math.PI);
 
       // Convert to appropriate unit for display
-      const displayDistance = useMiles ? Math.round(distanceKm * 0.621371) : Math.round(distanceKm);
+      const displayDistance = useMiles ? Math.round(distanceKm * MILES_TO_KM_RATIO) : Math.round(distanceKm);
       const unit = useMiles ? 'mi' : 'km';
 
       // Add label marker at the calculated position
