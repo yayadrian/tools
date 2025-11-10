@@ -165,9 +165,58 @@
   </footer>
   <script>
 document.addEventListener('DOMContentLoaded', function() {
+  const MILES_TO_KM_RATIO = 0.621371;
+  const defaultCenter = { lat: 51.5074, lng: -0.1278 };
+  const urlParams = new URLSearchParams(window.location.search);
+
+  function parseCoordinate(value, min, max) {
+    if (value === null) {
+      return null;
+    }
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return null;
+    }
+    return Math.min(Math.max(numeric, min), max);
+  }
+
+  const parsedLat = parseCoordinate(urlParams.get('lat'), -90, 90);
+  const parsedLng = parseCoordinate(urlParams.get('lng'), -180, 180);
+  const initialCenter = [
+    parsedLat ?? defaultCenter.lat,
+    parsedLng ?? defaultCenter.lng
+  ];
+
+  // Get DOM elements
+  const unitOptions = Array.from(document.querySelectorAll('.unit-option'));
+  const description = document.getElementById('description');
+  const ringSpacingSlider = document.getElementById('ring-spacing-slider');
+  const ringSpacingValue = document.getElementById('ring-spacing-value');
+
+  const sliderMin = Number(ringSpacingSlider.min);
+  const sliderMax = Number(ringSpacingSlider.max);
+  const sliderStep = Number(ringSpacingSlider.step) || 1;
+
+  const initialUnitParam = (urlParams.get('unit') || '').toLowerCase();
+  let useMiles = initialUnitParam === 'mi';
+  let baseSpacingKm = Number(ringSpacingSlider.value);
+
+  const spacingParam = urlParams.get('spacing');
+  if (spacingParam !== null) {
+    const numericSpacing = Number(spacingParam);
+    if (Number.isFinite(numericSpacing) && numericSpacing > 0) {
+      let spacingKm = useMiles ? numericSpacing / MILES_TO_KM_RATIO : numericSpacing;
+      spacingKm = Math.round(spacingKm / sliderStep) * sliderStep;
+      spacingKm = Math.min(Math.max(spacingKm, sliderMin), sliderMax);
+      baseSpacingKm = spacingKm;
+    }
+  }
+
+  ringSpacingSlider.value = String(baseSpacingKm);
+
   // Initialize the map
   const map = L.map('map', {
-    center: [51.5074, -0.1278],
+    center: initialCenter,
     zoom: 7,
     worldCopyJump: true
   });
@@ -179,17 +228,29 @@ document.addEventListener('DOMContentLoaded', function() {
   }).addTo(map);
 
   const baseMultipliers = [1, 2, 4, 6];
+  let currentCenter = L.latLng(initialCenter[0], initialCenter[1]);
 
-  // Get DOM elements
-  const unitOptions = Array.from(document.querySelectorAll('.unit-option'));
-  const description = document.getElementById('description');
-  const ringSpacingSlider = document.getElementById('ring-spacing-slider');
-  const ringSpacingValue = document.getElementById('ring-spacing-value');
+  function getDisplaySpacingRaw() {
+    return useMiles ? baseSpacingKm * MILES_TO_KM_RATIO : baseSpacingKm;
+  }
 
-  // Unit system: true = miles, false = kilometres
-  let useMiles = false;
-  let baseSpacingKm = Number(ringSpacingSlider.value);
-  
+  function getDisplaySpacingRounded() {
+    return Math.round(getDisplaySpacingRaw());
+  }
+
+  function updateUrlState() {
+    if (!currentCenter) {
+      return;
+    }
+    const params = new URLSearchParams();
+    params.set('lat', currentCenter.lat.toFixed(5));
+    params.set('lng', currentCenter.lng.toFixed(5));
+    params.set('spacing', getDisplaySpacingRounded().toString());
+    params.set('unit', useMiles ? 'mi' : 'km');
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState(null, '', newUrl);
+  }
+
   function getRingDistancesKm() {
     return baseMultipliers.map(multiplier => baseSpacingKm * multiplier);
   }
@@ -197,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function getDistancesForDisplay() {
     const ringDistances = getRingDistancesKm();
     return useMiles
-      ? ringDistances.map(distanceKm => Math.round(distanceKm * 0.621371))
+      ? ringDistances.map(distanceKm => Math.round(distanceKm * MILES_TO_KM_RATIO))
       : ringDistances.map(distanceKm => Math.round(distanceKm));
   }
 
@@ -208,9 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function updateSliderDisplay() {
-    const displayValue = useMiles
-      ? Math.round(baseSpacingKm * 0.621371)
-      : Math.round(baseSpacingKm);
+    const displayValue = getDisplaySpacingRounded();
     const unit = useMiles ? 'mi' : 'km';
     ringSpacingValue.textContent = `${displayValue} ${unit}`;
     ringSpacingSlider.setAttribute('aria-valuenow', baseSpacingKm.toString());
@@ -243,6 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSliderDisplay();
     updateDescription();
     refreshRingsIfNeeded();
+    updateUrlState();
   }
 
   unitOptions.forEach(option => {
@@ -268,6 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSliderDisplay();
     updateDescription();
     refreshRingsIfNeeded();
+    updateUrlState();
   });
 
   updateSliderDisplay();
@@ -276,6 +337,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function drawCentralRings(latlng) {
     markerLayer.clearLayers();
     ringsLayer.clearLayers();
+
+    currentCenter = L.latLng(latlng.lat, latlng.lng);
 
     L.marker(latlng, { title: 'Selected centre' }).addTo(markerLayer);
 
@@ -311,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const labelPosition = L.latLng(lat2 * 180 / Math.PI, lon2 * 180 / Math.PI);
 
       // Convert to appropriate unit for display
-      const displayDistance = useMiles ? Math.round(distanceKm * 0.621371) : Math.round(distanceKm);
+      const displayDistance = useMiles ? Math.round(distanceKm * MILES_TO_KM_RATIO) : Math.round(distanceKm);
       const unit = useMiles ? 'mi' : 'km';
 
       // Add label marker at the calculated position
@@ -323,6 +386,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
       }).addTo(ringsLayer);
     });
+
+    updateUrlState();
   }
 
   map.on('click', event => {
