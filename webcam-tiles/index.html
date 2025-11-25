@@ -302,6 +302,8 @@
 
     body.fill-viewport label {
       font-size: 0.95rem;
+      grid-auto-rows: minmax(0, 1fr);
+      align-items: stretch;
     }
 
     @media (max-width: 720px) {
@@ -352,6 +354,7 @@
         <div class="viewport-control">
           <span class="switch">
             <input type="checkbox" id="fillViewport">
+            <input type="checkbox" id="fillViewport" aria-label="Fill viewport">
             <label for="fillViewport">Fill viewport</label>
           </span>
           <p class="assistive">Make the tiles expand to fill the available browser space.</p>
