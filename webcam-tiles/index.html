@@ -57,6 +57,7 @@
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      max-width: 1200px;
     }
 
     .control-panel {
@@ -136,11 +137,58 @@
       flex: 1 1 160px;
     }
 
+    .viewport-control {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1 1 200px;
+    }
+
+    .switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .switch input {
+      appearance: none;
+      width: 2.75rem;
+      height: 1.6rem;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.35);
+      position: relative;
+      transition: background 0.2s ease;
+    }
+
+    .switch input::after {
+      content: '';
+      position: absolute;
+      inset: 0.2rem;
+      background: #0f172a;
+      border-radius: 50%;
+      transition: transform 0.2s ease, background 0.2s ease;
+      transform: translateX(0);
+    }
+
+    .switch input:checked {
+      background: rgba(56, 189, 248, 0.8);
+    }
+
+    .switch input:checked::after {
+      background: #e0f2fe;
+      transform: translateX(1.1rem);
+    }
+
     .tiles {
       --columns: 1;
       display: grid;
       gap: 1.2rem;
       grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+      flex: 1;
+      min-height: 0;
     }
 
     .tile {
@@ -205,6 +253,32 @@
       color: var(--muted);
     }
 
+    body.fill-viewport {
+      padding: 0;
+      align-items: stretch;
+    }
+
+    body.fill-viewport header,
+    body.fill-viewport .app {
+      padding-left: clamp(1rem, 2vw, 1.5rem);
+      padding-right: clamp(1rem, 2vw, 1.5rem);
+    }
+
+    body.fill-viewport header {
+      padding-top: 1rem;
+    }
+
+    body.fill-viewport .app {
+      width: 100%;
+      max-width: none;
+      min-height: calc(100vh - 3.5rem);
+    }
+
+    body.fill-viewport .tiles {
+      grid-auto-rows: minmax(0, 1fr);
+      align-items: stretch;
+    }
+
     @media (max-width: 720px) {
       body {
         padding: 1.2rem;
@@ -250,6 +324,13 @@
           </select>
           <p class="assistive">Choose how many columns to display. Auto adapts to your stream count.</p>
         </div>
+        <div class="viewport-control">
+          <span class="switch">
+            <input type="checkbox" id="fillViewport" aria-label="Fill viewport">
+            <label for="fillViewport">Fill viewport</label>
+          </span>
+          <p class="assistive">Make the tiles expand to fill the available browser space.</p>
+        </div>
         <div id="feedListContainer">
           <h3 style="margin-top:1.5rem;">Current Feeds</h3>
           <ul id="feedList" style="list-style:none;padding:0;margin:0;"></ul>
@@ -274,9 +355,14 @@
       const feedListContainer = document.getElementById('feedListContainer');
       const toggleConfig = document.getElementById('toggleConfig');
       const configContent = document.getElementById('configContent');
+      const fillViewport = document.getElementById('fillViewport');
       const STORAGE_KEY = 'webcamTiles:feeds';
+      const SETTINGS_KEY = 'webcamTiles:settings';
 
       let feeds = [];
+      let settings = {
+        fillViewport: false,
+      };
 
       function loadFeedsFromStorage() {
         try {
@@ -303,6 +389,35 @@
         } catch (error) {
           console.warn('Unable to save feeds:', error);
         }
+      }
+
+      function loadSettings() {
+        try {
+          const stored = localStorage.getItem(SETTINGS_KEY);
+          if (!stored) return { ...settings };
+          const parsed = JSON.parse(stored);
+          if (typeof parsed !== 'object' || parsed === null) return { ...settings };
+          return {
+            ...settings,
+            fillViewport: Boolean(parsed.fillViewport),
+          };
+        } catch (error) {
+          console.warn('Unable to load settings:', error);
+          return { ...settings };
+        }
+      }
+
+      function persistSettings() {
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        } catch (error) {
+          console.warn('Unable to save settings:', error);
+        }
+      }
+
+      function applyViewportSetting() {
+        document.body.classList.toggle('fill-viewport', settings.fillViewport);
+        fillViewport.checked = settings.fillViewport;
       }
 
       function refreshFeedsUI() {
@@ -506,6 +621,12 @@
 
       layoutSelect.addEventListener('change', updateLayout);
 
+      fillViewport.addEventListener('change', function () {
+        settings.fillViewport = fillViewport.checked;
+        applyViewportSetting();
+        persistSettings();
+      });
+
       // Collapsible config section
       let configVisible = true;
       toggleConfig.addEventListener('click', function () {
@@ -515,6 +636,8 @@
       });
 
       feeds = loadFeedsFromStorage();
+      settings = loadSettings();
+      applyViewportSetting();
       refreshFeedsUI();
     })();
   </script>
