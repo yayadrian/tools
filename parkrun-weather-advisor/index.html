@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏃‍♀️ What to Wear to parkrun? 🌤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #ff6b9d;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a8b2d1;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .weather-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .weather-info {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .weather-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            min-width: 120px;
+        }
+
+        .weather-item .icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .weather-item .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .weather-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .date-info {
+            text-align: center;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .outfit-section {
+            margin-top: 30px;
+        }
+
+        .outfit-title {
+            color: #667eea;
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .clothing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .clothing-item {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: popIn 0.5s ease-out backwards;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .clothing-item:nth-child(1) { animation-delay: 0.1s; }
+        .clothing-item:nth-child(2) { animation-delay: 0.2s; }
+        .clothing-item:nth-child(3) { animation-delay: 0.3s; }
+        .clothing-item:nth-child(4) { animation-delay: 0.4s; }
+        .clothing-item:nth-child(5) { animation-delay: 0.5s; }
+        .clothing-item:nth-child(6) { animation-delay: 0.6s; }
+
+        .clothing-item:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .clothing-item .emoji {
+            font-size: 4em;
+            margin-bottom: 10px;
+            display: block;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .clothing-item .name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #5a4a7a;
+        }
+
+        .tips-section {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .tips-title {
+            color: #5a4a7a;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tips-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips-list li {
+            color: #5a4a7a;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.5em;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            padding: 20px;
+            border-radius: 15px;
+            color: #721c24;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .clothing-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏃‍♀️ What to Wear to parkrun? 🌤️</h1>
+        <p class="subtitle">Let's check the weather for your next run!</p>
+        
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Checking the weather for Saturday morning... ☁️</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Leicester coordinates
+        const LEICESTER_LAT = 52.6369;
+        const LEICESTER_LON = -1.1398;
+
+        // Get next Saturday
+        function getNextSaturday() {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const daysUntilSaturday = (6 - dayOfWeek + 7) % 7;
+            const nextSaturday = new Date(today);
+            
+            // If today is Saturday and it's before 9am, use today, otherwise next Saturday
+            if (dayOfWeek === 6 && today.getHours() < 9) {
+                nextSaturday.setHours(9, 0, 0, 0);
+            } else {
+                nextSaturday.setDate(today.getDate() + (daysUntilSaturday || 7));
+                nextSaturday.setHours(9, 0, 0, 0);
+            }
+            
+            return nextSaturday;
+        }
+
+        // Format date nicely
+        function formatDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-GB', options);
+        }
+
+        // Fetch weather data from Open-Meteo API
+        async function getWeatherData() {
+            const nextSaturday = getNextSaturday();
+            const dateStr = nextSaturday.toISOString().split('T')[0];
+            
+            try {
+                const response = await fetch(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${LEICESTER_LAT}&longitude=${LEICESTER_LON}&hourly=temperature_2m,precipitation,windspeed_10m,weathercode&timezone=Europe/London&forecast_days=7`
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Weather data fetch failed');
+                }
+                
+                const data = await response.json();
+                
+                // Find the index for next Saturday at 9am
+                const targetDateTime = nextSaturday.toISOString().slice(0, 13) + ':00';
+                const index = data.hourly.time.findIndex(time => time === targetDateTime);
+                
+                if (index === -1) {
+                    throw new Error('Could not find weather data for next Saturday');
+                }
+                
+                return {
+                    date: nextSaturday,
+                    temperature: Math.round(data.hourly.temperature_2m[index]),
+                    precipitation: data.hourly.precipitation[index],
+                    windSpeed: Math.round(data.hourly.windspeed_10m[index]),
+                    weatherCode: data.hourly.weathercode[index]
+                };
+            } catch (error) {
+                console.error('Error fetching weather:', error);
+                throw error;
+            }
+        }
+
+        // Get weather emoji based on weather code
+        function getWeatherEmoji(code) {
+            if (code === 0) return '☀️';
+            if (code <= 3) return '⛅';
+            if (code <= 48) return '☁️';
+            if (code <= 67) return '🌧️';
+            if (code <= 77) return '🌨️';
+            if (code <= 82) return '🌧️';
+            if (code <= 86) return '🌨️';
+            return '⛈️';
+        }
+
+        // Determine outfit based on weather
+        function suggestOutfit(weather) {
+            const { temperature, precipitation, windSpeed } = weather;
+            const outfit = [];
+            const tips = [];
+
+            // Temperature-based clothing
+            if (temperature < 0) {
+                outfit.push({ name: 'Thermal Base Layer', emoji: '🧥' });
+                outfit.push({ name: 'Running Jacket', emoji: '🧥' });
+                outfit.push({ name: 'Gloves', emoji: '🧤' });
+                outfit.push({ name: 'Beanie/Headband', emoji: '🎩' });
+                outfit.push({ name: 'Long Tights', emoji: '👖' });
+                tips.push('Layer up! It\'s freezing out there! ❄️');
+                tips.push('Don\'t forget to warm up indoors first 🏠');
+            } else if (temperature < 5) {
+                outfit.push({ name: 'Long Sleeve Top', emoji: '👕' });
+                outfit.push({ name: 'Light Jacket', emoji: '🧥' });
+                outfit.push({ name: 'Gloves', emoji: '🧤' });
+                outfit.push({ name: 'Long Tights', emoji: '👖' });
+                tips.push('Cold morning! You\'ll warm up after a few minutes 🔥');
+                tips.push('Consider a neck warmer or buff 🧣');
+            } else if (temperature < 10) {
+                outfit.push({ name: 'Long Sleeve Top', emoji: '👕' });
+                outfit.push({ name: 'Long Tights', emoji: '👖' });
+                tips.push('Perfect running weather! Not too hot, not too cold 👌');
+                tips.push('You might want a light jacket for the warm-up 🧥');
+            } else if (temperature < 15) {
+                outfit.push({ name: 'T-shirt', emoji: '👕' });
+                outfit.push({ name: 'Long Tights/Shorts', emoji: '🩳' });
+                tips.push('Lovely weather for a run! 🌸');
+                tips.push('You\'ll warm up quickly, so don\'t overdress 😊');
+            } else if (temperature < 20) {
+                outfit.push({ name: 'T-shirt', emoji: '👕' });
+                outfit.push({ name: 'Shorts', emoji: '🩳' });
+                tips.push('Beautiful running conditions! ☀️');
+            } else {
+                outfit.push({ name: 'Vest/Tank Top', emoji: '🎽' });
+                outfit.push({ name: 'Shorts', emoji: '🩳' });
+                outfit.push({ name: 'Cap', emoji: '🧢' });
+                tips.push('It\'s warm! Stay light and breathable 🌡️');
+                tips.push('Don\'t forget sun protection! ☀️');
+            }
+
+            // Wind considerations
+            if (windSpeed > 30) {
+                outfit.push({ name: 'Windproof Jacket', emoji: '🌬️' });
+                tips.push('Very windy! A windproof layer will help 💨');
+            } else if (windSpeed > 20) {
+                tips.push('A bit breezy - might feel colder than expected! 🍃');
+            }
+
+            // Rain considerations
+            if (precipitation > 5) {
+                outfit.push({ name: 'Waterproof Jacket', emoji: '☔' });
+                outfit.push({ name: 'Cap/Visor', emoji: '🧢' });
+                tips.push('Heavy rain expected! Waterproof gear recommended 🌧️');
+                tips.push('Wear a cap to keep rain out of your eyes 👀');
+            } else if (precipitation > 0.5) {
+                outfit.push({ name: 'Light Rain Jacket', emoji: '☔' });
+                tips.push('Some rain expected - a light jacket should do 🌦️');
+            }
+
+            // Essential items
+            outfit.push({ name: 'Running Shoes', emoji: '👟' });
+            
+            // General tips
+            tips.push('Bring your parkrun barcode! 🏃‍♀️');
+            tips.push('Stay hydrated before you run! 💧');
+
+            return { outfit, tips };
+        }
+
+        // Render the page
+        function renderPage(weather) {
+            const { outfit, tips } = suggestOutfit(weather);
+            
+            const content = `
+                <div class="date-info">
+                    📅 ${formatDate(weather.date)} at 9:00 AM
+                </div>
+                
+                <div class="weather-card">
+                    <div class="weather-info">
+                        <div class="weather-item">
+                            <div class="icon">${getWeatherEmoji(weather.weatherCode)}</div>
+                            <div class="label">Conditions</div>
+                            <div class="value">Leicester</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="icon">🌡️</div>
+                            <div class="label">Temperature</div>
+                            <div class="value">${weather.temperature}°C</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="icon">💨</div>
+                            <div class="label">Wind</div>
+                            <div class="value">${weather.windSpeed} km/h</div>
+                        </div>
+                        <div class="weather-item">
+                            <div class="icon">💧</div>
+                            <div class="label">Rain</div>
+                            <div class="value">${weather.precipitation} mm</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="outfit-section">
+                    <div class="outfit-title">✨ Your Outfit Suggestion ✨</div>
+                    <div class="clothing-grid">
+                        ${outfit.map(item => `
+                            <div class="clothing-item">
+                                <span class="emoji">${item.emoji}</span>
+                                <div class="name">${item.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="tips-section">
+                    <div class="tips-title">
+                        💡 Helpful Tips
+                    </div>
+                    <ul class="tips-list">
+                        ${tips.map(tip => `<li>✨ ${tip}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('content').innerHTML = content;
+        }
+
+        // Show error
+        function showError(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="error">
+                    <h2>😢 Oops!</h2>
+                    <p>${message}</p>
+                    <p style="margin-top: 15px;">Please try refreshing the page.</p>
+                </div>
+            `;
+        }
+
+        // Initialize
+        async function init() {
+            try {
+                const weather = await getWeatherData();
+                renderPage(weather);
+            } catch (error) {
+                showError('We couldn\'t fetch the weather data. Please check your internet connection and try again.');
+            }
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
