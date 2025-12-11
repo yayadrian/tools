@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Working Hours Calculator</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <h1>Working Hours Calculator</h1>
+      <p class="subtitle">Design and compare 2-week working patterns</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel" id="settings-panel">
+      <div class="panel-header">
+        <h2>Contract &amp; Settings</h2>
+      </div>
+      <div class="panel-body settings-grid">
+        <label class="field">
+          <span>Hours per week</span>
+          <input type="number" step="0.1" id="hoursPerWeek" />
+        </label>
+        <label class="field">
+          <span>Target hours per fortnight</span>
+          <input type="number" step="0.1" id="targetFortnightHours" />
+          <small class="hint">Defaults to weekly × 2</small>
+        </label>
+        <label class="field">
+          <span>Default break (minutes)</span>
+          <input type="number" step="5" id="defaultBreakMinutes" />
+        </label>
+      </div>
+      <div class="panel-footer" id="settings-errors"></div>
+    </section>
+
+    <section class="panel" id="patterns-panel">
+      <div class="panel-header actions">
+        <div>
+          <h2>Patterns</h2>
+          <p class="subtitle">Edit start/end/break per day. Totals update instantly.</p>
+        </div>
+        <div class="button-group">
+          <button id="addPatternBtn" class="btn primary">Add pattern</button>
+        </div>
+      </div>
+      <div id="patterns-container"></div>
+    </section>
+
+    <section class="panel" id="comparison-panel">
+      <div class="panel-header">
+        <h2>Comparison</h2>
+        <p class="subtitle">All patterns at a glance</p>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrapper">
+          <table id="comparison-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Week 1</th>
+                <th>Week 2</th>
+                <th>Fortnight</th>
+                <th>Gap vs target</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
