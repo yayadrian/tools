@@ -1,0 +1,19 @@
+# Cursor Agents Directory
+
+This directory contains agent configurations with rules and plans.
+
+Each agent should have its own subdirectory with:
+- `rules.md` - Agent-specific rules and guidelines
+- `plan.md` - Agent plans and workflows
+
+Example structure:
+```
+.cursor/agents/
+  ├── default/
+  │   ├── rules.md
+  │   └── plan.md
+  └── your-agent/
+      ├── rules.md
+      └── plan.md
+```
+
