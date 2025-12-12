@@ -195,8 +195,36 @@ body {
   min-width: 90px;
 }
 
+/* Prevent macOS browsers' native <input type="time"> UI from changing row height while editing */
+.day-grid td input[type="time"],
+.day-grid td input[type="number"] {
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  height: 2.25rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fbfbfe;
+  color: var(--text);
+}
+
+.day-grid td input[type="time"]:focus,
+.day-grid td input[type="number"]:focus {
+  outline: 2px solid rgba(45, 108, 223, 0.25);
+  outline-offset: 0;
+}
+
 .day-grid .hours-cell {
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Keep the Hours column width stable so row height doesn't jump when values get wider */
+.day-grid th:nth-child(5),
+.day-grid td:nth-child(5) {
+  width: 6.5rem;
 }
 
 .invalid-row {
