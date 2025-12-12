@@ -31,6 +31,7 @@ const defaultPattern = (settings) => ({
 });
 
 let state = loadState();
+const _patternNameDebounceTimers = new Map();
 
 function loadState() {
   try {
@@ -186,6 +187,35 @@ function renamePattern(id, name) {
   render();
 }
 
+function saveFocus() {
+  const el = document.activeElement;
+  if (!el || el.tagName !== "INPUT") return null;
+  const card = el.closest(".pattern-card");
+  return {
+    patternId: card?.dataset.patternId ?? null,
+    role: el.dataset.role ?? null,
+    idx: el.dataset.idx ?? null,
+    selectionStart: typeof el.selectionStart === "number" ? el.selectionStart : null,
+    selectionEnd: typeof el.selectionEnd === "number" ? el.selectionEnd : null,
+  };
+}
+
+function restoreFocus(saved) {
+  if (!saved?.patternId || !saved?.role) return;
+  const card = document.querySelector(`[data-pattern-id="${saved.patternId}"]`);
+  if (!card) return;
+  const selector =
+    saved.idx != null
+      ? `[data-role="${saved.role}"][data-idx="${saved.idx}"]`
+      : `[data-role="${saved.role}"]`;
+  const el = card.querySelector(selector);
+  if (!el) return;
+  el.focus();
+  if (el.setSelectionRange && saved.selectionStart != null) {
+    el.setSelectionRange(saved.selectionStart, saved.selectionEnd ?? saved.selectionStart);
+  }
+}
+
 function updateDayField(patternId, dayIndex, field, value) {
   state = {
     ...state,
@@ -332,7 +362,21 @@ function bindPatternEvents() {
   document.querySelectorAll("[data-role='pattern-name']").forEach((input) => {
     input.addEventListener("input", (e) => {
       const patternId = e.target.closest(".pattern-card").dataset.patternId;
-      renamePattern(patternId, e.target.value);
+      // Update in-memory immediately so other updates see latest name,
+      // but debounce persistence + re-render to avoid nuking focus on every keystroke.
+      state = {
+        ...state,
+        patterns: state.patterns.map((p) => (p.id === patternId ? { ...p, name: e.target.value } : p)),
+      };
+
+      clearTimeout(_patternNameDebounceTimers.get(patternId));
+      _patternNameDebounceTimers.set(
+        patternId,
+        setTimeout(() => {
+          persist();
+          render();
+        }, 300)
+      );
     });
   });
 
@@ -426,9 +470,11 @@ function bindGlobalActions() {
 }
 
 function render() {
+  const focused = saveFocus();
   renderSettings();
   renderPatterns();
   renderComparison();
+  restoreFocus(focused);
 }
 
 function runInlineChecks() {
