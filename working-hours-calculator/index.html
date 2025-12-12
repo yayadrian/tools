@@ -4,79 +4,161 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Working Hours Calculator</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header class="app-header">
-    <div class="container">
-      <h1>Working Hours Calculator</h1>
-      <p class="subtitle">Design and compare 2-week working patterns</p>
+  <header class="hero">
+    <div class="hero__text">
+      <p class="eyebrow">Working Hours Calculator</p>
+      <h1>Plan and compare your two-week rota</h1>
+      <p class="lede">Set your contract once, add as many patterns as you need, and instantly see how close each option lands to your target fortnight.</p>
+      <ul class="hero__list">
+        <li>Separate week totals with automatic fortnight calculations.</li>
+        <li>Inline validation for start/end/break to mirror spreadsheet rules.</li>
+        <li>Local storage keeps your settings and patterns between visits.</li>
+      </ul>
+    </div>
+    <div class="hero__stats">
+      <div class="stat">
+        <span class="label">Weekly hours</span>
+        <span class="value" id="stat-weekly">37.5 hrs</span>
+      </div>
+      <div class="stat">
+        <span class="label">Fortnight target</span>
+        <span class="value" id="stat-target">75 hrs</span>
+      </div>
+      <div class="stat">
+        <span class="label">Default break</span>
+        <span class="value" id="stat-break">60 min</span>
+      </div>
+      <div class="stat">
+        <span class="label">Patterns in view</span>
+        <span class="value" id="stat-patterns">1</span>
+      </div>
     </div>
   </header>
 
-  <main class="container">
-    <section class="panel" id="settings-panel">
-      <div class="panel-header">
-        <h2>Contract &amp; Settings</h2>
+  <main class="layout">
+    <section class="card" id="settings-panel">
+      <div class="card__header">
+        <div>
+          <p class="eyebrow">Contract</p>
+          <h2>Global settings</h2>
+          <p class="muted">Defaults used by every pattern. Update weekly hours or breaks and we&apos;ll keep your targets aligned.</p>
+        </div>
       </div>
-      <div class="panel-body settings-grid">
+      <div class="settings-grid">
         <label class="field">
           <span>Hours per week</span>
-          <input type="number" step="0.1" id="hoursPerWeek" />
+          <input type="number" step="0.25" id="hours-per-week" min="0" />
         </label>
         <label class="field">
           <span>Target hours per fortnight</span>
-          <input type="number" step="0.1" id="targetFortnightHours" />
-          <small class="hint">Defaults to weekly × 2</small>
+          <input type="number" step="0.25" id="target-fortnight" min="0" />
+          <small class="helper">Default: hours per week × 2</small>
         </label>
         <label class="field">
-          <span>Default break (minutes)</span>
-          <input type="number" step="5" id="defaultBreakMinutes" />
+          <span>Default break length (minutes)</span>
+          <input type="number" step="5" id="default-break" min="0" />
         </label>
+        <div class="field action">
+          <span>Target control</span>
+          <button class="ghost" id="reset-target">Reset target to 2 × weekly</button>
+          <small class="helper">Target stays in sync while auto mode is on.</small>
+        </div>
       </div>
-      <div class="panel-footer" id="settings-errors"></div>
     </section>
 
-    <section class="panel" id="patterns-panel">
-      <div class="panel-header actions">
+    <section class="card" id="patterns-panel">
+      <div class="card__header">
         <div>
-          <h2>Patterns</h2>
-          <p class="subtitle">Edit start/end/break per day. Totals update instantly.</p>
+          <p class="eyebrow">Patterns</p>
+          <h2>Edit working patterns</h2>
+          <p class="muted">Each pattern spans two weeks (Mon–Fri). Adjust start, end, and breaks to see updated totals and gaps.</p>
         </div>
-        <div class="button-group">
-          <button id="addPatternBtn" class="btn primary">Add pattern</button>
+        <div class="actions">
+          <button id="add-pattern" class="primary">Add pattern</button>
         </div>
       </div>
-      <div id="patterns-container"></div>
+      <div id="patterns" class="pattern-list"></div>
     </section>
 
-    <section class="panel" id="comparison-panel">
-      <div class="panel-header">
-        <h2>Comparison</h2>
-        <p class="subtitle">All patterns at a glance</p>
-      </div>
-      <div class="panel-body">
-        <div class="table-wrapper">
-          <table id="comparison-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Week 1</th>
-                <th>Week 2</th>
-                <th>Fortnight</th>
-                <th>Gap vs target</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
+    <section class="card" id="comparison-panel">
+      <div class="card__header">
+        <div>
+          <p class="eyebrow">Comparison</p>
+          <h2>Pattern leaderboard</h2>
+          <p class="muted">See which pattern is closest to your contract target. Best match is highlighted.</p>
         </div>
+      </div>
+      <div class="comparison-table__wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Week 1 (hrs)</th>
+              <th>Week 2 (hrs)</th>
+              <th>Fortnight (hrs)</th>
+              <th>Gap vs target</th>
+            </tr>
+          </thead>
+          <tbody id="comparison-body"></tbody>
+        </table>
       </div>
     </section>
   </main>
 
-  <div id="toast" role="status" aria-live="polite"></div>
+  <template id="pattern-template">
+    <article class="pattern-card">
+      <header class="pattern-card__header">
+        <input class="pattern-name" type="text" />
+        <div class="pattern-actions">
+          <button class="ghost duplicate">Duplicate</button>
+          <button class="ghost danger delete">Delete</button>
+        </div>
+      </header>
+      <div class="pattern-card__body">
+        <div class="table-responsive">
+          <table class="day-table">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Break (min)</th>
+                <th>Daily hours</th>
+              </tr>
+            </thead>
+            <tbody class="day-rows"></tbody>
+            <tfoot>
+              <tr class="summary-row">
+                <th>Totals</th>
+                <td colspan="4" class="summary-values"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="pattern-status">
+          <div class="status-text"></div>
+          <div class="badges"></div>
+        </div>
+      </div>
+    </article>
+  </template>
 
-  <script type="module" src="./app.js"></script>
+  <template id="day-row-template">
+    <tr>
+      <td class="day-label"></td>
+      <td><input type="time" class="day-start" /></td>
+      <td><input type="time" class="day-end" /></td>
+      <td><input type="number" min="0" step="5" class="day-break" /></td>
+      <td class="day-hours"></td>
+    </tr>
+  </template>
+
+  <script src="app.js"></script>
 </body>
 </html>
