@@ -4,41 +4,37 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Basmati Rice Water Calculator</title>
-  <style>
+  <style>*{box-sizing:border-box}
     :root {
-      --background: #f6f7fb;
+      --bg: #f6f7fb;
       --panel: #ffffff;
       --accent: #2d6cdf;
       --accent-soft: #e4edff;
       --text: #1f2a3d;
       --muted: #586174;
       --error: #c0392b;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    }
-
-    * {
-      box-sizing: border-box;
-      font-family: "Inter", system-ui, -apple-system, Segoe UI, sans-serif;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at 20% 20%, #f0f4ff, #f7f8fb 35%), var(--background);
+      background: radial-gradient(circle at 20% 20%, #f0f4ff, #f7f8fb 35%), var(--bg);
       color: var(--text);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 32px 16px 64px;
+      font-family: "Helvetica", system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.5;
     }
 
     main {
       width: min(520px, 100%);
       background: var(--panel);
       border-radius: 18px;
-      box-shadow: var(--shadow);
       padding: 28px 26px 30px;
       border: 1px solid #edf0f5;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
 
     h1 {
@@ -50,7 +46,6 @@
     p.lead {
       margin: 0 0 20px;
       color: var(--muted);
-      line-height: 1.5;
     }
 
     .input-grid {
@@ -74,7 +69,7 @@
       padding: 12px 14px;
       border-radius: 10px;
       border: 1px solid #dfe4ec;
-      font-size: 1rem;
+      font-size: 16px;
       color: var(--text);
       background: #fbfcff;
       transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
@@ -118,7 +113,6 @@
       padding: 14px;
       border-radius: 12px;
       font-weight: 600;
-      line-height: 1.5;
     }
 
     .result {
@@ -153,7 +147,6 @@
       margin: 0;
       padding-left: 18px;
       color: var(--muted);
-      line-height: 1.6;
     }
 
     @media (min-width: 520px) {
@@ -209,49 +202,49 @@
     </section>
   </main>
 
-  <script>
-    const form = document.getElementById("calculator");
-    const riceInput = document.getElementById("riceInput");
-    const textureSelect = document.getElementById("textureSelect");
-    const resultEl = document.getElementById("result");
-    const errorEl = document.getElementById("error");
+  <script type="module">
+const form = document.getElementById("calculator");
+const riceInput = document.getElementById("riceInput");
+const textureSelect = document.getElementById("textureSelect");
+const resultEl = document.getElementById("result");
+const errorEl = document.getElementById("error");
 
-    function formatGrams(value) {
-      const rounded = Math.round(value * 10) / 10;
-      return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
-    }
+function formatGrams(value) {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
+}
 
-    function showMessage({ result, error }) {
-      if (error) {
-        errorEl.textContent = error;
-        errorEl.style.display = "block";
-        resultEl.style.display = "none";
-        return;
-      }
+function showMessage({ result, error }) {
+  if (error) {
+    errorEl.textContent = error;
+    errorEl.style.display = "block";
+    resultEl.style.display = "none";
+    return;
+  }
 
-      if (result) {
-        resultEl.textContent = result;
-        resultEl.style.display = "block";
-        errorEl.style.display = "none";
-      }
-    }
+  if (result) {
+    resultEl.textContent = result;
+    resultEl.style.display = "block";
+    errorEl.style.display = "none";
+  }
+}
 
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const riceValue = parseFloat(riceInput.value);
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const riceValue = parseFloat(riceInput.value);
 
-      if (!Number.isFinite(riceValue) || riceValue <= 0) {
-        showMessage({ error: "Please enter a rice amount greater than 0 grams." });
-        return;
-      }
+  if (!Number.isFinite(riceValue) || riceValue <= 0) {
+    showMessage({ error: "Please enter a rice amount greater than 0 grams." });
+    return;
+  }
 
-      const ratio = textureSelect.value === "softer" ? 1.7 : 1.6;
-      const textureLabel = textureSelect.options[textureSelect.selectedIndex].textContent;
-      const water = riceValue * ratio;
-      const display = `For ${formatGrams(riceValue)} g rice, use ${formatGrams(water)} g water (${textureLabel.toLowerCase()}).`;
+  const ratio = textureSelect.value === "softer" ? 1.7 : 1.6;
+  const textureLabel = textureSelect.options[textureSelect.selectedIndex].textContent;
+  const water = riceValue * ratio;
+  const display = `For ${formatGrams(riceValue)} g rice, use ${formatGrams(water)} g water (${textureLabel.toLowerCase()}).`;
 
-      showMessage({ result: display });
-    });
+  showMessage({ result: display });
+});
   </script>
 </body>
 </html>
