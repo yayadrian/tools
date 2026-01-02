@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rice Cooking Calculator</title>
+  <style>*{box-sizing:border-box}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px 48px;
+      background: #f7f8fb;
+      color: #1f2a3d;
+      font-family: Helvetica, system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(520px, 100%);
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 26px 24px 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e5e8f0;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.7rem;
+      letter-spacing: -0.01em;
+    }
+
+    p.lead {
+      margin: 0 0 18px;
+      color: #4c5566;
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #24304a;
+    }
+
+    input,
+    select,
+    button {
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #d9deeb;
+      background: #fdfefe;
+      color: inherit;
+      transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #2e6bdf;
+      box-shadow: 0 0 0 3px #e4edff;
+      background: #ffffff;
+    }
+
+    button {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(120deg, #2e6bdf, #1f5bc5);
+      color: #ffffff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 20px rgba(46, 107, 223, 0.2);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(46, 107, 223, 0.25);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .row {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result,
+    .error {
+      margin: 4px 0 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      display: none;
+      font-weight: 600;
+    }
+
+    .result {
+      background: #f7fbff;
+      border: 1px solid #d6e6ff;
+      color: #0f3564;
+    }
+
+    .error {
+      background: #fff3f1;
+      border: 1px solid #f4cbc6;
+      color: #c0392b;
+    }
+
+    section.guide {
+      margin-top: 22px;
+      padding: 16px 14px;
+      border-radius: 14px;
+      background: #f9fafc;
+      border: 1px dashed #d9deeb;
+    }
+
+    section.guide h2 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    ol {
+      margin: 0;
+      padding-left: 18px;
+      color: #4c5566;
+    }
+
+    @media (min-width: 520px) {
+      .row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: end;
+      }
+
+      .row .full-width {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Rice Cooking Calculator</h1>
+    <p class="lead">Find the right water-to-rice ratio for fluffy or softer basmati cooked on an induction hob.</p>
+
+    <form id="calculator" novalidate>
+      <div class="row">
+        <div>
+          <label for="riceInput">Rice amount (grams)</label>
+          <input id="riceInput" name="rice" type="number" min="1" step="1" inputmode="decimal" value="120" required />
+        </div>
+        <div>
+          <label for="textureSelect">Texture</label>
+          <select id="textureSelect" name="texture">
+            <option value="fluffy">Fluffy (separate grains)</option>
+            <option value="softer">Softer (slightly stickier)</option>
+          </select>
+        </div>
+        <div class="full-width">
+          <button type="submit">Calculate water</button>
+        </div>
+      </div>
+      <div class="result" id="result" aria-live="polite"></div>
+      <div class="error" id="error" aria-live="polite"></div>
+    </form>
+
+    <section class="guide">
+      <h2>How to cook basmati rice on an induction hob</h2>
+      <ol>
+        <li>Rinse the rice under cold water 2–3 times until the water runs clearer.</li>
+        <li>Measure the water using the calculator (e.g. 1.6× the rice weight for fluffy rice).</li>
+        <li>Add rice and water to a saucepan with a flat base and a tight-fitting lid. Add a pinch of salt if you like.</li>
+        <li>Place the pan on the induction hob and heat on high until the water comes to a boil.</li>
+        <li>Stir once, then turn the induction hob right down low, put the lid on, and let it gently simmer.</li>
+        <li>Cook for 10–12 minutes (for basmati) until the water is absorbed and the rice is tender.</li>
+        <li>Turn the hob off and leave the pan covered for 5–10 minutes to steam.</li>
+        <li>Fluff the rice with a fork and serve.</li>
+      </ol>
+    </section>
+  </main>
+
+<script type="module">
+const form = document.getElementById("calculator");
+const riceInput = document.getElementById("riceInput");
+const textureSelect = document.getElementById("textureSelect");
+const resultEl = document.getElementById("result");
+const errorEl = document.getElementById("error");
+
+function formatGrams(value) {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
+}
+
+function showResult(message) {
+  resultEl.textContent = message;
+  resultEl.style.display = "block";
+  errorEl.style.display = "none";
+}
+
+function showError(message) {
+  errorEl.textContent = message;
+  errorEl.style.display = "block";
+  resultEl.style.display = "none";
+}
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const rawValue = riceInput.value.trim();
+
+  if (!rawValue) {
+    showError("Please enter how many grams of rice you're cooking.");
+    return;
+  }
+
+  const riceValue = Number(rawValue);
+
+  if (!Number.isFinite(riceValue) || riceValue <= 0) {
+    showError("Enter a valid rice amount greater than 0 grams.");
+    return;
+  }
+
+  const ratio = textureSelect.value === "softer" ? 1.7 : 1.6;
+  const textureLabel = textureSelect.options[textureSelect.selectedIndex].textContent;
+  const water = riceValue * ratio;
+  const result = `For ${formatGrams(riceValue)} g rice, use ${formatGrams(water)} g water (${textureLabel.toLowerCase()}).`;
+
+  showResult(result);
+});
+</script>
+</body>
+</html>
