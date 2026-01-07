@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Christmas timer</title>
+  <style>*{box-sizing:border-box}
+    :root {
+      color-scheme: light dark;
+      --bg: #0f172a;
+      --card: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.12);
+      --text: #e2e8f0;
+      --muted: #cbd5e1;
+      --accent: #f97316;
+      --pill: rgba(249,115,22,0.12);
+      --shadow: 0 14px 40px rgba(0,0,0,0.25);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Helvetica Neue", Arial, system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(236,72,153,0.08), transparent 25%),
+        radial-gradient(circle at 80% 0%, rgba(59,130,246,0.08), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      padding: 1.5rem;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    header {
+      text-align: left;
+      padding: 1rem 0 0.25rem;
+    }
+
+    .eyebrow {
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0 0 .35rem;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      letter-spacing: -0.02em;
+    }
+
+    .lede {
+      margin: 0.4rem 0 0.2rem;
+      color: var(--muted);
+      max-width: 56ch;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+
+    .card h2 {
+      margin-top: 0.1rem;
+      margin-bottom: 0.4rem;
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    label span {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+      font-size: 0.95rem;
+    }
+
+    input, button {
+      font-size: 16px;
+      font-family: inherit;
+      border-radius: 10px;
+    }
+
+    input[type="datetime-local"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.7rem;
+      background: rgba(15,23,42,0.4);
+      color: var(--text);
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.35);
+      color: var(--text);
+    }
+
+    input:focus, button:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin: 0.75rem 0 0.4rem;
+    }
+
+    button {
+      border: none;
+      padding: 0.7rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #0f172a;
+      background: var(--accent);
+      box-shadow: 0 10px 30px rgba(249,115,22,0.3);
+    }
+
+    .ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+
+    .status {
+      margin: 0.1rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .next-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--pill);
+      color: var(--accent);
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .countdown {
+      font-size: clamp(1.4rem, 5vw, 1.8rem);
+      font-weight: 800;
+      margin: 0.2rem 0 0.1rem;
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.25rem 0.5rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(15,23,42,0.35);
+    }
+
+    .timeline-row strong {
+      font-size: 1rem;
+    }
+
+    .timeline-row .times {
+      text-align: right;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .small {
+      color: var(--muted);
+      margin: 0.25rem 0 0;
+      font-size: 0.9rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 0.6rem;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+
+    .item-row {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.65rem;
+      background: rgba(15,23,42,0.25);
+      display: grid;
+      gap: 0.35rem;
+      grid-template-columns: 1fr 110px;
+      align-items: center;
+    }
+
+    .item-row small {
+      color: var(--muted);
+    }
+
+    .item-row button {
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+
+    .inline {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 1rem; }
+      .timeline-row { grid-template-columns: 1fr; }
+      .timeline-row .times { text-align: left; }
+      .item-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <p class="eyebrow">Holiday kitchen helper</p>
+      <h1>Christmas timer</h1>
+      <p class="lede">Start once, stay in sync even if you reload. We calculate when each dish needs to go in so everything lands on the table together.</p>
+    </header>
+
+    <section class="card">
+      <h2>Serve time & start</h2>
+      <label for="serveTime">
+        <span>When should everything be ready?</span>
+        <input id="serveTime" type="datetime-local" aria-describedby="serveHelp">
+      </label>
+      <p class="status" id="serveHelp">Hit start to pin this plan in localStorage so reloading the page won&apos;t lose your countdowns.</p>
+      <div class="actions">
+        <button id="startButton">Start the timer</button>
+        <button id="clearButton" class="ghost">Clear saved timer</button>
+      </div>
+      <p class="status" id="startStatus">Not started yet.</p>
+    </section>
+
+    <section class="card">
+      <h2>Next steps</h2>
+      <div class="next-grid" id="nextSteps" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <div class="inline" style="justify-content: space-between; gap: 0.25rem;">
+        <h2 style="margin: 0;">Combined timeline</h2>
+        <span class="pill" id="summaryPill">Waiting to start</span>
+      </div>
+      <p class="small">Shows every dish start time leading to your serve moment.</p>
+      <div class="timeline" id="timeline" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2>Menu & timings</h2>
+      <p class="small">Pre-filled for your roast, but completely editable. Durations are in minutes.</p>
+      <div class="grid" id="itemEditor"></div>
+      <div class="actions">
+        <button id="addItem">Add another dish</button>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2, 10));
+
+const defaultItems = [
+  { id: newId(), name: "Vegetable lasagna (non-fan oven)", minutes: 45 },
+  { id: newId(), name: "Roast potatoes", minutes: 45 },
+  { id: newId(), name: "Roast parsnips", minutes: 45 },
+  { id: newId(), name: "Roast carrots", minutes: 45 },
+  { id: newId(), name: "Yorkshire puddings", minutes: 20 }
+];
+
+const stateKey = "christmas-timer-state-v1";
+let items = [...defaultItems];
+let serveAt = null;
+let started = false;
+let startedAt = null;
+
+const serveInput = document.getElementById("serveTime");
+const startButton = document.getElementById("startButton");
+const clearButton = document.getElementById("clearButton");
+const startStatus = document.getElementById("startStatus");
+const timelineEl = document.getElementById("timeline");
+const nextStepsEl = document.getElementById("nextSteps");
+const summaryPill = document.getElementById("summaryPill");
+const itemEditor = document.getElementById("itemEditor");
+const addItemBtn = document.getElementById("addItem");
+
+function toLocalInputValue(date) {
+  const iso = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+  return iso;
+}
+
+function defaultServeTime() {
+  const twoHours = new Date(Date.now() + 120 * 60000);
+  return toLocalInputValue(twoHours);
+}
+
+function loadState() {
+  const saved = localStorage.getItem(stateKey);
+  if (!saved) {
+    serveInput.value = defaultServeTime();
+    renderEditor();
+    return;
+  }
+  try {
+    const parsed = JSON.parse(saved);
+    items = parsed.items?.length ? parsed.items : [...defaultItems];
+    serveAt = parsed.serveAt ? new Date(parsed.serveAt) : null;
+    started = Boolean(parsed.started);
+    startedAt = parsed.startedAt ? new Date(parsed.startedAt) : null;
+    if (serveAt) serveInput.value = toLocalInputValue(serveAt);
+  } catch (e) {
+    console.error("Failed to load saved timer", e);
+    serveInput.value = defaultServeTime();
+    items = [...defaultItems];
+    started = false;
+  }
+  renderEditor();
+}
+
+function saveState() {
+  if (!started || !serveAt) {
+    localStorage.removeItem(stateKey);
+    return;
+  }
+  localStorage.setItem(
+    stateKey,
+    JSON.stringify({
+      items,
+      serveAt: serveAt.toISOString(),
+      startedAt: startedAt?.toISOString(),
+      started
+    })
+  );
+}
+
+function handleStart() {
+  const value = serveInput.value || defaultServeTime();
+  serveInput.value = value;
+  serveAt = new Date(value);
+  started = true;
+  startedAt = new Date();
+  saveState();
+  renderAll();
+}
+
+function handleClear() {
+  localStorage.removeItem(stateKey);
+  items = [...defaultItems];
+  serveAt = null;
+  started = false;
+  startedAt = null;
+  serveInput.value = defaultServeTime();
+  renderEditor();
+  renderAll();
+}
+
+function computeSchedule() {
+  if (!serveAt) return [];
+  return items
+    .filter(item => item.name.trim())
+    .map(item => {
+      const startTime = new Date(serveAt.getTime() - Number(item.minutes || 0) * 60000);
+      return {
+        ...item,
+        startTime,
+        endTime: serveAt
+      };
+    })
+    .sort((a, b) => a.startTime - b.startTime);
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatCountdown(ms) {
+  const isPast = ms < 0;
+  const abs = Math.abs(ms);
+  const totalSeconds = Math.round(abs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const parts = [];
+  if (hours) parts.push(`${hours}h`);
+  if (minutes || hours) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+  const label = parts.join(" ");
+  return isPast ? `${label} ago` : `in ${label}`;
+}
+
+function renderNextSteps(schedule) {
+  nextStepsEl.innerHTML = "";
+  if (!started || !serveAt || !schedule.length) {
+    const div = document.createElement("div");
+    div.className = "timeline-row";
+    div.innerHTML = `<strong>Waiting to start</strong><div class="times">Set a serve time and hit start.</div>`;
+    nextStepsEl.appendChild(div);
+    return;
+  }
+
+  const now = Date.now();
+  const upcoming = schedule.filter(item => item.startTime.getTime() > now);
+  const current = schedule.filter(item => item.startTime.getTime() <= now && item.endTime.getTime() >= now);
+
+  const toShow = [...current.slice(0, 2), ...upcoming.slice(0, 3)];
+  if (!toShow.length) {
+    const div = document.createElement("div");
+    div.className = "timeline-row";
+    div.innerHTML = `<strong>All dishes should be in!</strong><div class="times">You&apos;re coasting to serve time.</div>`;
+    nextStepsEl.appendChild(div);
+    return;
+  }
+
+  toShow.forEach(item => {
+    const box = document.createElement("div");
+    box.className = "timeline-row";
+    const delta = item.startTime.getTime() - now;
+    const status = delta > 0 ? "Starts" : "Cooking";
+    box.innerHTML = `
+      <div>
+        <div class="pill">${status}</div>
+        <div class="countdown">${formatCountdown(delta)}</div>
+        <div class="small">${item.name}</div>
+      </div>
+      <div class="times">
+        <div><strong>${formatTime(item.startTime)}</strong></div>
+        <div class="small">to ${formatTime(item.endTime)}</div>
+      </div>
+    `;
+    nextStepsEl.appendChild(box);
+  });
+}
+
+function renderTimeline(schedule) {
+  timelineEl.innerHTML = "";
+  if (!started || !serveAt) {
+    timelineEl.innerHTML = `<div class="small">Set your serve time, start the timer, and we&apos;ll fill this with exact start moments.</div>`;
+    summaryPill.textContent = "Waiting to start";
+    return;
+  }
+
+  const earliest = schedule[0]?.startTime;
+  summaryPill.textContent = earliest
+    ? `First oven slot: ${formatTime(earliest)}`
+    : "No dishes yet";
+
+  schedule.forEach(item => {
+    const now = Date.now();
+    const delta = item.startTime.getTime() - now;
+    const liveStatus = delta > 0 ? "Starts" : item.endTime.getTime() > now ? "Cooking" : "Done";
+    const row = document.createElement("div");
+    row.className = "timeline-row";
+    row.innerHTML = `
+      <div>
+        <div class="pill">${liveStatus}</div>
+        <strong>${item.name}</strong>
+        <div class="small">${item.minutes} minutes in the oven</div>
+      </div>
+      <div class="times">
+        <div><strong>${formatTime(item.startTime)}</strong> → ${formatTime(item.endTime)}</div>
+        <div class="small">${formatCountdown(delta)}</div>
+      </div>
+    `;
+    timelineEl.appendChild(row);
+  });
+}
+
+function renderEditor() {
+  itemEditor.innerHTML = "";
+  items.forEach(item => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "item-row";
+    const nameId = `name-${item.id}`;
+    const timeId = `time-${item.id}`;
+    wrapper.innerHTML = `
+      <label for="${nameId}">
+        <span>Dish</span>
+        <input id="${nameId}" type="text" value="${item.name}">
+      </label>
+      <label for="${timeId}">
+        <span>Cook time (min)</span>
+        <input id="${timeId}" type="number" min="1" value="${item.minutes}" inputmode="numeric">
+      </label>
+      <div style="grid-column: 1 / -1;">
+        <button class="ghost" data-remove="${item.id}">Remove</button>
+      </div>
+    `;
+    itemEditor.appendChild(wrapper);
+
+    wrapper.querySelector(`#${nameId}`).addEventListener("change", (e) => {
+      item.name = e.target.value;
+      saveState();
+      renderAll();
+    });
+
+    wrapper.querySelector(`#${timeId}`).addEventListener("change", (e) => {
+      const value = Math.max(1, Number(e.target.value) || 1);
+      item.minutes = value;
+      e.target.value = value;
+      saveState();
+      renderAll();
+    });
+
+    wrapper.querySelector("[data-remove]").addEventListener("click", () => {
+      items = items.filter(entry => entry.id !== item.id);
+      renderEditor();
+      saveState();
+      renderAll();
+    });
+  });
+}
+
+function addItem() {
+  items = [...items, { id: newId(), name: "New dish", minutes: 15 }];
+  renderEditor();
+  saveState();
+  renderAll();
+}
+
+function renderAll() {
+  const schedule = computeSchedule();
+  const now = new Date();
+  if (started && serveAt) {
+    const untilServe = serveAt.getTime() - now.getTime();
+    startStatus.textContent = untilServe >= 0
+      ? `Serving at ${formatTime(serveAt)} (${formatCountdown(untilServe)})`
+      : `Serve time passed ${formatCountdown(untilServe)}.`;
+  } else {
+    startStatus.textContent = "Not started yet.";
+  }
+  renderNextSteps(schedule);
+  renderTimeline(schedule);
+}
+
+startButton.addEventListener("click", handleStart);
+clearButton.addEventListener("click", handleClear);
+addItemBtn.addEventListener("click", addItem);
+
+loadState();
+renderAll();
+setInterval(renderAll, 1000);
+  </script>
+</body>
+</html>
