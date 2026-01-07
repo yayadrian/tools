@@ -310,8 +310,8 @@ function renderPatterns() {
 
       row.innerHTML = `
         <td>${DAY_LABELS[idx]}</td>
-        <td><input type="time" value="${day.start || ""}" data-role="start" data-idx="${idx}" /></td>
-        <td><input type="time" value="${day.end || ""}" data-role="end" data-idx="${idx}" /></td>
+        <td><input type="text" value="${day.start || ""}" data-role="start" data-idx="${idx}" /></td>
+        <td><input type="text" value="${day.end || ""}" data-role="end" data-idx="${idx}" /></td>
         <td><input type="number" min="0" step="5" value="${day.breakMinutes ?? ""}" data-role="break" data-idx="${idx}" /></td>
         <td class="hours-cell">${result.valid ? result.hours.toFixed(2) : "—"}</td>
       `;
