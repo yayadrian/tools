@@ -5,127 +5,249 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rice Cooking Calculator</title>
   <style>*{box-sizing:border-box}
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --accent: #2d6cdf;
+      --accent-soft: #e4edff;
+      --text: #1f2a3d;
+      --muted: #586174;
+      --error: #c0392b;
+      --success: #27ae60;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
+      background: radial-gradient(circle at 20% 20%, #f0f4ff, #f7f8fb 35%), var(--bg);
+      color: var(--text);
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 32px 16px 48px;
-      background: #f7f8fb;
-      color: #1f2a3d;
+      padding: 32px 16px 64px;
       font-family: Helvetica, system-ui, -apple-system, sans-serif;
       line-height: 1.5;
     }
 
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 520px;
+    }
+
     main {
-      width: min(520px, 100%);
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 26px 24px 28px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-      border: 1px solid #e5e8f0;
+      width: 100%;
+      background: var(--panel);
+      border-radius: 18px;
+      padding: 28px 26px 30px;
+      border: 1px solid #edf0f5;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
 
     h1 {
       margin: 0 0 10px;
-      font-size: 1.7rem;
-      letter-spacing: -0.01em;
+      font-size: 1.8rem;
+      letter-spacing: -0.02em;
     }
 
     p.lead {
-      margin: 0 0 18px;
-      color: #4c5566;
+      margin: 0 0 20px;
+      color: var(--muted);
     }
 
-    form {
+    .input-grid {
       display: grid;
-      gap: 12px;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
     }
 
     label {
-      display: block;
       font-weight: 600;
+      font-size: 0.94rem;
+      display: block;
       margin-bottom: 6px;
-      color: #24304a;
+      color: #263248;
     }
 
     input,
     select,
-    button {
-      font-size: 16px;
-      font-family: inherit;
-    }
-
-    input,
-    select {
+    textarea {
       width: 100%;
       padding: 12px 14px;
       border-radius: 10px;
-      border: 1px solid #d9deeb;
-      background: #fdfefe;
-      color: inherit;
+      border: 1px solid #dfe4ec;
+      font-size: 16px;
+      color: var(--text);
+      background: #fbfcff;
       transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      appearance: none;
     }
 
     input:focus,
     select:focus {
       outline: none;
-      border-color: #2e6bdf;
-      box-shadow: 0 0 0 3px #e4edff;
-      background: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+      background: #fff;
     }
 
     button {
+      width: 100%;
       padding: 12px 16px;
       border-radius: 12px;
       border: none;
-      background: linear-gradient(120deg, #2e6bdf, #1f5bc5);
-      color: #ffffff;
+      background: linear-gradient(120deg, var(--accent), #1f5ac1);
+      color: #fff;
+      font-size: 1.05rem;
       font-weight: 700;
       cursor: pointer;
       transition: transform 0.1s ease, box-shadow 0.2s ease;
-      box-shadow: 0 10px 20px rgba(46, 107, 223, 0.2);
+      box-shadow: 0 10px 20px rgba(45, 108, 223, 0.2);
     }
 
     button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 12px 24px rgba(46, 107, 223, 0.25);
+      box-shadow: 0 12px 24px rgba(45, 108, 223, 0.25);
     }
 
     button:active {
       transform: translateY(0);
     }
 
-    .row {
-      display: grid;
-      gap: 12px;
-    }
-
     .result,
     .error {
-      margin: 4px 0 0;
-      padding: 12px 14px;
+      margin-top: 14px;
+      padding: 14px;
       border-radius: 12px;
-      display: none;
       font-weight: 600;
     }
 
     .result {
       background: #f7fbff;
       border: 1px solid #d6e6ff;
-      color: #0f3564;
+      color: #113462;
+      display: none;
     }
 
     .error {
       background: #fff3f1;
       border: 1px solid #f4cbc6;
-      color: #c0392b;
+      color: var(--error);
+      display: none;
     }
 
+    /* Timer styles */
+    .timer-panel {
+      background: var(--panel);
+      border-radius: 14px;
+      padding: 18px 16px;
+      border: 1px solid #edf0f5;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+      order: -1;
+    }
+
+    .timer-panel h3 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timer-display {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      margin: 10px 0;
+    }
+
+    .timer-display.warning {
+      color: #e67e22;
+    }
+
+    .timer-display.complete {
+      color: var(--success);
+    }
+
+    .timer-step {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 14px;
+    }
+
+    .timer-step strong {
+      color: var(--text);
+    }
+
+    .timer-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .timer-buttons button {
+      flex: 1;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+    }
+
+    .timer-btn-secondary {
+      background: #f0f2f5;
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .timer-btn-secondary:hover {
+      background: #e4e7ec;
+      box-shadow: none;
+    }
+
+    .timer-btn-success {
+      background: linear-gradient(120deg, var(--success), #1e8449);
+      box-shadow: 0 10px 20px rgba(39, 174, 96, 0.2);
+    }
+
+    .timer-btn-success:hover {
+      box-shadow: 0 12px 24px rgba(39, 174, 96, 0.25);
+    }
+
+    .timer-btn-warning {
+      background: linear-gradient(120deg, #e67e22, #d35400);
+      box-shadow: 0 10px 20px rgba(230, 126, 34, 0.2);
+    }
+
+    .timer-progress {
+      display: flex;
+      gap: 6px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+
+    .timer-progress-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e0e4eb;
+      transition: background 0.2s;
+    }
+
+    .timer-progress-dot.active {
+      background: var(--accent);
+    }
+
+    .timer-progress-dot.complete {
+      background: var(--success);
+    }
+
+    /* Guide section */
     section.guide {
-      margin-top: 22px;
-      padding: 16px 14px;
+      margin-top: 26px;
+      padding: 18px 16px;
       border-radius: 14px;
       background: #f9fafc;
       border: 1px dashed #d9deeb;
@@ -137,34 +259,126 @@
       letter-spacing: -0.01em;
     }
 
-    ol {
+    ol.steps {
       margin: 0;
-      padding-left: 18px;
-      color: #4c5566;
+      padding-left: 0;
+      color: var(--muted);
+      list-style: none;
+      counter-reset: step;
+    }
+
+    ol.steps li {
+      position: relative;
+      padding: 8px 0 8px 32px;
+      counter-increment: step;
+      transition: background 0.2s, color 0.2s;
+      border-radius: 8px;
+      margin: 0 -8px;
+      padding-left: 40px;
+    }
+
+    ol.steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      width: 22px;
+      height: 22px;
+      background: #e4e7ec;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    ol.steps li.active {
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
+    ol.steps li.active::before {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    ol.steps li.complete {
+      color: var(--success);
+    }
+
+    ol.steps li.complete::before {
+      background: var(--success);
+      color: #fff;
+    }
+
+    ol.steps li .step-time {
+      display: inline-block;
+      background: #fff3e0;
+      color: #e65100;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+
+    ol.steps li.active .step-time,
+    ol.steps li.complete .step-time {
+      background: rgba(255,255,255,0.7);
     }
 
     @media (min-width: 520px) {
-      .row {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .input-grid {
+        grid-template-columns: 1fr 1fr;
         align-items: end;
       }
 
-      .row .full-width {
+      .input-grid .full-width {
         grid-column: 1 / -1;
+      }
+    }
+
+    /* Desktop layout: timer on side */
+    @media (min-width: 900px) {
+      body {
+        align-items: flex-start;
+        padding-top: 60px;
+      }
+
+      .page-wrapper {
+        flex-direction: row;
+        max-width: 900px;
+        align-items: flex-start;
+      }
+
+      main {
+        flex: 1;
+        max-width: 520px;
+      }
+
+      .timer-panel {
+        order: 0;
+        width: 280px;
+        position: sticky;
+        top: 60px;
+        flex-shrink: 0;
       }
     }
   </style>
 </head>
 <body>
+  <div class="page-wrapper">
   <main>
-    <h1>Rice Cooking Calculator</h1>
-    <p class="lead">Find the right water-to-rice ratio for fluffy or softer basmati cooked on an induction hob.</p>
+    <h1>Basmati Rice Water Calculator</h1>
+    <p class="lead">Calculate the right water-to-rice ratio for fluffy or softer basmati cooked on an induction hob.</p>
 
     <form id="calculator" novalidate>
-      <div class="row">
+      <div class="input-grid">
         <div>
           <label for="riceInput">Rice amount (grams)</label>
-          <input id="riceInput" name="rice" type="number" min="1" step="1" inputmode="decimal" value="120" required />
+          <input id="riceInput" name="rice" type="number" min="1" step="1" inputmode="decimal" placeholder="e.g. 180" required />
         </div>
         <div>
           <label for="textureSelect">Texture</label>
@@ -183,18 +397,40 @@
 
     <section class="guide">
       <h2>How to cook basmati rice on an induction hob</h2>
-      <ol>
-        <li>Rinse the rice under cold water 2–3 times until the water runs clearer.</li>
-        <li>Measure the water using the calculator (e.g. 1.6× the rice weight for fluffy rice).</li>
-        <li>Add rice and water to a saucepan with a flat base and a tight-fitting lid. Add a pinch of salt if you like.</li>
-        <li>Place the pan on the induction hob and heat on high until the water comes to a boil.</li>
-        <li>Stir once, then turn the induction hob right down low, put the lid on, and let it gently simmer.</li>
-        <li>Cook for 10–12 minutes (for basmati) until the water is absorbed and the rice is tender.</li>
-        <li>Turn the hob off and leave the pan covered for 5–10 minutes to steam.</li>
-        <li>Fluff the rice with a fork and serve.</li>
+      <ol class="steps" id="steps">
+        <li data-step="0">Rinse the rice under cold water 2–3 times until the water runs clearer.</li>
+        <li data-step="1">Measure the water using the calculator (e.g. 1.6× the rice weight for fluffy rice).</li>
+        <li data-step="2">Add rice and water to a saucepan with a flat base and a tight-fitting lid. Add a pinch of salt if you like.</li>
+        <li data-step="3">Place the pan on the induction hob and heat on high until the water comes to a boil.</li>
+        <li data-step="4">Stir once, then turn the induction hob right down low, put the lid on, and let it gently simmer.</li>
+        <li data-step="5" data-duration="600">Cook for 10–12 minutes (for basmati) until the water is absorbed and the rice is tender. <span class="step-time">10 min</span></li>
+        <li data-step="6" data-duration="300">Turn the hob off and leave the pan covered for 5–10 minutes to steam. <span class="step-time">5 min</span></li>
+        <li data-step="7">Fluff the rice with a fork and serve.</li>
       </ol>
     </section>
   </main>
+
+  <!-- Timer Panel -->
+  <aside class="timer-panel" id="timerPanel">
+    <h3>Cooking Timer</h3>
+    <div class="timer-display" id="timerDisplay">00:00</div>
+    <div class="timer-step" id="timerStep">Press Start to begin cooking</div>
+    <div class="timer-buttons" id="timerButtons">
+      <button type="button" id="startBtn" class="timer-btn-success">Start</button>
+      <button type="button" id="skipBtn" class="timer-btn-secondary">Skip</button>
+    </div>
+    <div class="timer-progress" id="timerProgress">
+      <div class="timer-progress-dot" data-step="0"></div>
+      <div class="timer-progress-dot" data-step="1"></div>
+      <div class="timer-progress-dot" data-step="2"></div>
+      <div class="timer-progress-dot" data-step="3"></div>
+      <div class="timer-progress-dot" data-step="4"></div>
+      <div class="timer-progress-dot" data-step="5"></div>
+      <div class="timer-progress-dot" data-step="6"></div>
+      <div class="timer-progress-dot" data-step="7"></div>
+    </div>
+  </aside>
+  </div>
 
 <script type="module">
 const form = document.getElementById("calculator");
@@ -208,41 +444,321 @@ function formatGrams(value) {
   return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
 }
 
-function showResult(message) {
-  resultEl.textContent = message;
-  resultEl.style.display = "block";
-  errorEl.style.display = "none";
-}
+function showMessage({ result, error }) {
+  if (error) {
+    errorEl.textContent = error;
+    errorEl.style.display = "block";
+    resultEl.style.display = "none";
+    return;
+  }
 
-function showError(message) {
-  errorEl.textContent = message;
-  errorEl.style.display = "block";
-  resultEl.style.display = "none";
+  if (result) {
+    resultEl.textContent = result;
+    resultEl.style.display = "block";
+    errorEl.style.display = "none";
+  }
 }
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  const rawValue = riceInput.value.trim();
-
-  if (!rawValue) {
-    showError("Please enter how many grams of rice you're cooking.");
-    return;
-  }
-
-  const riceValue = Number(rawValue);
+  const riceValue = parseFloat(riceInput.value);
 
   if (!Number.isFinite(riceValue) || riceValue <= 0) {
-    showError("Enter a valid rice amount greater than 0 grams.");
+    showMessage({ error: "Please enter a rice amount greater than 0 grams." });
     return;
   }
 
   const ratio = textureSelect.value === "softer" ? 1.7 : 1.6;
   const textureLabel = textureSelect.options[textureSelect.selectedIndex].textContent;
   const water = riceValue * ratio;
-  const result = `For ${formatGrams(riceValue)} g rice, use ${formatGrams(water)} g water (${textureLabel.toLowerCase()}).`;
+  const display = `For ${formatGrams(riceValue)} g rice, use ${formatGrams(water)} g water (${textureLabel.toLowerCase()}).`;
 
-  showResult(result);
+  showMessage({ result: display });
 });
+
+// Timer functionality
+const STORAGE_KEY = 'riceTimerState';
+const TOTAL_STEPS = 8;
+
+const steps = [
+  { name: 'Rinse rice', duration: null },
+  { name: 'Measure water', duration: null },
+  { name: 'Add to pan', duration: null },
+  { name: 'Bring to boil', duration: null },
+  { name: 'Reduce heat', duration: null },
+  { name: 'Simmer', duration: 600 },
+  { name: 'Steam (rest)', duration: 300 },
+  { name: 'Fluff & serve', duration: null }
+];
+
+const timerDisplay = document.getElementById('timerDisplay');
+const timerStep = document.getElementById('timerStep');
+const startBtn = document.getElementById('startBtn');
+const skipBtn = document.getElementById('skipBtn');
+const stepsEl = document.getElementById('steps');
+const progressDots = document.querySelectorAll('.timer-progress-dot');
+
+let timerState = {
+  currentStep: -1,
+  remainingSeconds: 0,
+  isRunning: false,
+  startedAt: null
+};
+
+let timerInterval = null;
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      timerState = { ...timerState, ...parsed };
+
+      // If timer was running, calculate elapsed time
+      if (timerState.isRunning && timerState.startedAt) {
+        const elapsed = Math.floor((Date.now() - timerState.startedAt) / 1000);
+        timerState.remainingSeconds = Math.max(0, timerState.remainingSeconds - elapsed);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load timer state:', e);
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      currentStep: timerState.currentStep,
+      remainingSeconds: timerState.remainingSeconds,
+      isRunning: timerState.isRunning,
+      startedAt: timerState.isRunning ? Date.now() : null
+    }));
+  } catch (e) {
+    console.error('Failed to save timer state:', e);
+  }
+}
+
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function updateDisplay() {
+  const step = timerState.currentStep;
+
+  // Update timer display
+  if (step < 0) {
+    timerDisplay.textContent = '00:00';
+    timerDisplay.className = 'timer-display';
+    timerStep.innerHTML = 'Press <strong>Start</strong> to begin cooking';
+    startBtn.textContent = 'Start';
+    startBtn.className = 'timer-btn-success';
+  } else if (step >= TOTAL_STEPS) {
+    timerDisplay.textContent = 'Done!';
+    timerDisplay.className = 'timer-display complete';
+    timerStep.innerHTML = '<strong>Rice is ready!</strong>';
+    startBtn.textContent = 'Reset';
+    startBtn.className = 'timer-btn-secondary';
+  } else {
+    const currentStepData = steps[step];
+
+    if (currentStepData.duration) {
+      timerDisplay.textContent = formatTime(timerState.remainingSeconds);
+      timerDisplay.className = timerState.remainingSeconds <= 30 && timerState.remainingSeconds > 0
+        ? 'timer-display warning'
+        : 'timer-display';
+
+      if (timerState.remainingSeconds === 0) {
+        timerDisplay.className = 'timer-display complete';
+      }
+    } else {
+      timerDisplay.textContent = '--:--';
+      timerDisplay.className = 'timer-display';
+    }
+
+    timerStep.innerHTML = `Step ${step + 1}: <strong>${currentStepData.name}</strong>`;
+
+    if (timerState.isRunning) {
+      startBtn.textContent = 'Pause';
+      startBtn.className = 'timer-btn-warning';
+    } else {
+      startBtn.textContent = timerState.remainingSeconds === 0 || !currentStepData.duration ? 'Next' : 'Resume';
+      startBtn.className = 'timer-btn-success';
+    }
+  }
+
+  // Update step list highlighting
+  const stepItems = stepsEl.querySelectorAll('li');
+  stepItems.forEach((li, index) => {
+    li.classList.remove('active', 'complete');
+    if (index < step) {
+      li.classList.add('complete');
+    } else if (index === step) {
+      li.classList.add('active');
+    }
+  });
+
+  // Update progress dots
+  progressDots.forEach((dot, index) => {
+    dot.classList.remove('active', 'complete');
+    if (index < step) {
+      dot.classList.add('complete');
+    } else if (index === step) {
+      dot.classList.add('active');
+    }
+  });
+}
+
+function tick() {
+  if (timerState.remainingSeconds > 0) {
+    timerState.remainingSeconds--;
+    saveState();
+    updateDisplay();
+
+    if (timerState.remainingSeconds === 0) {
+      stopTimer();
+      playNotification();
+    }
+  }
+}
+
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerState.isRunning = true;
+  timerState.startedAt = Date.now();
+  timerInterval = setInterval(tick, 1000);
+  saveState();
+  updateDisplay();
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  timerState.isRunning = false;
+  timerState.startedAt = null;
+  saveState();
+  updateDisplay();
+}
+
+function goToStep(stepIndex) {
+  stopTimer();
+  timerState.currentStep = stepIndex;
+
+  if (stepIndex >= 0 && stepIndex < TOTAL_STEPS && steps[stepIndex].duration) {
+    timerState.remainingSeconds = steps[stepIndex].duration;
+  } else {
+    timerState.remainingSeconds = 0;
+  }
+
+  saveState();
+  updateDisplay();
+}
+
+function nextStep() {
+  goToStep(timerState.currentStep + 1);
+}
+
+function resetTimer() {
+  stopTimer();
+  timerState.currentStep = -1;
+  timerState.remainingSeconds = 0;
+  saveState();
+  updateDisplay();
+}
+
+function playNotification() {
+  // Play a simple beep using Web Audio API
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    gainNode.gain.value = 0.3;
+
+    oscillator.start();
+
+    setTimeout(() => {
+      oscillator.stop();
+      audioCtx.close();
+    }, 200);
+
+    // Also try to vibrate on mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200]);
+    }
+  } catch (e) {
+    console.log('Audio notification not available');
+  }
+}
+
+// Event handlers
+startBtn.addEventListener('click', () => {
+  if (timerState.currentStep < 0) {
+    // Start from beginning
+    goToStep(0);
+    const stepData = steps[0];
+    if (stepData.duration) {
+      startTimer();
+    }
+  } else if (timerState.currentStep >= TOTAL_STEPS) {
+    // Reset
+    resetTimer();
+  } else {
+    const stepData = steps[timerState.currentStep];
+
+    if (timerState.isRunning) {
+      // Pause
+      stopTimer();
+    } else if (timerState.remainingSeconds === 0 || !stepData.duration) {
+      // Move to next step
+      nextStep();
+      const nextStepData = steps[timerState.currentStep];
+      if (nextStepData && nextStepData.duration) {
+        startTimer();
+      }
+    } else {
+      // Resume
+      startTimer();
+    }
+  }
+});
+
+skipBtn.addEventListener('click', () => {
+  if (timerState.currentStep < 0) {
+    goToStep(0);
+  } else if (timerState.currentStep < TOTAL_STEPS) {
+    nextStep();
+    const stepData = steps[timerState.currentStep];
+    if (stepData && stepData.duration && timerState.currentStep < TOTAL_STEPS) {
+      // Auto-start timed steps when skipping
+      startTimer();
+    }
+  }
+});
+
+// Initialize
+loadState();
+updateDisplay();
+
+// Resume timer if it was running
+if (timerState.isRunning && timerState.currentStep >= 0 && timerState.currentStep < TOTAL_STEPS) {
+  const stepData = steps[timerState.currentStep];
+  if (stepData.duration && timerState.remainingSeconds > 0) {
+    startTimer();
+  } else {
+    timerState.isRunning = false;
+    saveState();
+    updateDisplay();
+  }
+}
 </script>
 </body>
 </html>
