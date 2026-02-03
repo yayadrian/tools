@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Webcam Feed Extractor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --primary: #2155f5;
+      --text: #101828;
+      --muted: #667085;
+      --border: #e4e7ec;
+      --success: #12b76a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: min(900px, 100%);
+    }
+
+    header {
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 3vw, 2.6rem);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    input[type="url"] {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    button {
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(33, 85, 245, 0.2);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      background: #98a2b3;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .helper {
+      margin-top: 16px;
+      background: #f0f4ff;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+    }
+
+    .results {
+      margin-top: 24px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-item {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: #fbfcff;
+    }
+
+    .result-item a {
+      color: var(--primary);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .tag {
+      font-size: 0.8rem;
+      background: #eef4ff;
+      color: #1d3ed1;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .status {
+      margin-top: 16px;
+      color: var(--muted);
+    }
+
+    .status.success {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .status.error {
+      color: #b42318;
+      font-weight: 600;
+    }
+
+    @media (max-width: 720px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .result-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Webcam Feed Extractor</h1>
+      <p>Paste a webcam page URL and this tool will scan the HTML (including embedded iframes) to find any <strong>.m3u8</strong> HLS streams.</p>
+    </header>
+
+    <section class="card">
+      <label for="pageUrl">Webcam page URL</label>
+      <form id="lookupForm">
+        <input
+          id="pageUrl"
+          name="pageUrl"
+          type="url"
+          placeholder="https://www.camsecure.co.uk/swanage_lifeboat_webcam.html"
+          required
+        >
+        <button type="submit" id="lookupButton">Find feeds</button>
+      </form>
+      <div class="helper">
+        Tip: The extractor uses a read-only fetch proxy to bypass CORS. It only searches the HTML for direct links to <code>.m3u8</code> files.
+      </div>
+      <div id="status" class="status"></div>
+      <div id="results" class="results"></div>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById("lookupForm");
+    const pageUrlInput = document.getElementById("pageUrl");
+    const statusEl = document.getElementById("status");
+    const resultsEl = document.getElementById("results");
+    const buttonEl = document.getElementById("lookupButton");
+
+    const proxyUrl = (url) => `https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`;
+
+    const normalizeUrls = (urls, baseUrl) => {
+      const resolved = urls.map((url) => {
+        try {
+          return new URL(url, baseUrl).toString();
+        } catch (error) {
+          return null;
+        }
+      });
+      return [...new Set(resolved.filter(Boolean))];
+    };
+
+    const extractM3u8Links = (html, baseUrl) => {
+      const links = [];
+      const regex = /https?:\/\/[^\s"'<>]+?\.m3u8(?:\?[^\s"'<>]+)?/gi;
+      const matches = html.match(regex) || [];
+      links.push(...matches);
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const attrs = ["src", "href", "data-src", "data-href"];
+      doc.querySelectorAll("*" ).forEach((node) => {
+        attrs.forEach((attr) => {
+          const value = node.getAttribute(attr);
+          if (value && value.includes(".m3u8")) {
+            links.push(value);
+          }
+        });
+      });
+
+      return normalizeUrls(links, baseUrl);
+    };
+
+    const extractIframeSources = (html, baseUrl) => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const sources = Array.from(doc.querySelectorAll("iframe[src]"))
+        .map((iframe) => iframe.getAttribute("src"))
+        .filter(Boolean);
+      return normalizeUrls(sources, baseUrl);
+    };
+
+    const renderResults = (links) => {
+      resultsEl.innerHTML = "";
+      if (links.length === 0) {
+        statusEl.textContent = "No .m3u8 feeds found in the page HTML.";
+        statusEl.className = "status error";
+        return;
+      }
+
+      statusEl.textContent = `Found ${links.length} feed${links.length > 1 ? "s" : ""}.`;
+      statusEl.className = "status success";
+
+      links.forEach((link, index) => {
+        const item = document.createElement("div");
+        item.className = "result-item";
+        const anchor = document.createElement("a");
+        anchor.href = link;
+        anchor.textContent = link;
+        anchor.target = "_blank";
+        anchor.rel = "noopener";
+
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = index === 0 ? "Primary" : "Alternate";
+
+        item.append(anchor, tag);
+        resultsEl.appendChild(item);
+      });
+    };
+
+    const setLoading = (isLoading) => {
+      buttonEl.disabled = isLoading;
+      buttonEl.textContent = isLoading ? "Scanning..." : "Find feeds";
+    };
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const pageUrl = pageUrlInput.value.trim();
+
+      if (!pageUrl) {
+        return;
+      }
+
+      statusEl.textContent = "";
+      statusEl.className = "status";
+      resultsEl.innerHTML = "";
+      setLoading(true);
+
+      try {
+        const response = await fetch(proxyUrl(pageUrl));
+        if (!response.ok) {
+          throw new Error("Unable to fetch the page HTML.");
+        }
+
+        const html = await response.text();
+        const directLinks = extractM3u8Links(html, pageUrl);
+        const iframeSources = extractIframeSources(html, pageUrl);
+
+        let iframeLinks = [];
+        for (const iframeUrl of iframeSources) {
+          try {
+            const iframeResponse = await fetch(proxyUrl(iframeUrl));
+            if (!iframeResponse.ok) {
+              continue;
+            }
+            const iframeHtml = await iframeResponse.text();
+            iframeLinks = iframeLinks.concat(extractM3u8Links(iframeHtml, iframeUrl));
+          } catch (error) {
+            console.warn("Iframe fetch failed", iframeUrl, error);
+          }
+        }
+
+        const allLinks = [...new Set([...directLinks, ...iframeLinks])];
+        renderResults(allLinks);
+      } catch (error) {
+        console.error(error);
+        statusEl.textContent = "Something went wrong fetching the page. Please double-check the URL.";
+        statusEl.className = "status error";
+      } finally {
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>
