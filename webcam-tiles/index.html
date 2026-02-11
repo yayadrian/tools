@@ -386,6 +386,11 @@
       const fillViewport = document.getElementById('fillViewport');
       const STORAGE_KEY = 'webcamTiles:feeds';
       const SETTINGS_KEY = 'webcamTiles:settings';
+      const DEFAULT_FEEDS = [
+        { url: 'https://camsecure.co/HLS/salterns.m3u8' },
+        { url: 'https://camsecure.co/HLS/swanagecamlifeboat.m3u8' },
+        { url: 'https://camsecure.uk/HLS/charmouth.m3u8' },
+      ];
 
       let feeds = [];
       let settings = {
@@ -663,7 +668,8 @@
         toggleConfig.textContent = configVisible ? 'Hide Config ▲' : 'Show Config ▼';
       });
 
-      feeds = loadFeedsFromStorage();
+      const storedFeeds = loadFeedsFromStorage();
+      feeds = storedFeeds.length > 0 ? storedFeeds : DEFAULT_FEEDS.map(f => ({ ...f }));
       settings = loadSettings();
       applyViewportSetting();
       refreshFeedsUI();
