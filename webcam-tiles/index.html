@@ -130,6 +130,43 @@
       transform: translateY(0);
     }
 
+    .feed-action {
+      padding: 0.3rem 0.55rem;
+      font-size: 0.8rem;
+      border-radius: 0.45rem;
+      background: rgba(148, 163, 184, 0.2);
+      color: var(--text);
+      box-shadow: none;
+      line-height: 1;
+    }
+
+    .feed-action:hover {
+      background: rgba(148, 163, 184, 0.35);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .feed-action:disabled {
+      opacity: 0.35;
+      cursor: default;
+      transform: none;
+    }
+
+    .reset-btn {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--muted);
+      box-shadow: none;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      border-radius: 0.65rem;
+    }
+
+    .reset-btn:hover {
+      background: rgba(148, 163, 184, 0.3);
+      color: var(--text);
+      box-shadow: none;
+    }
+
     .layout-control {
       display: flex;
       flex-direction: column;
@@ -238,6 +275,61 @@
       white-space: nowrap;
     }
 
+    .tile-loading {
+      position: absolute;
+      inset: 0;
+      bottom: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .tile-loading[hidden] {
+      display: none;
+    }
+
+    .tile-loading::after {
+      content: '';
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 3px solid rgba(148, 163, 184, 0.3);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .tile-error {
+      position: absolute;
+      inset: 0;
+      bottom: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 3;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .tile-error p {
+      margin: 0;
+    }
+
+    .tile-error .retry-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      border-radius: 0.5rem;
+    }
+
     .empty-state {
       border: 1px dashed rgba(148, 163, 184, 0.35);
       border-radius: 1rem;
@@ -330,7 +422,7 @@
 
   <main class="app" aria-live="polite">
     <section class="control-panel" aria-label="Stream controls">
-      <button id="toggleConfig" type="button" style="margin-bottom:1rem;">Hide Config ▲</button>
+      <button id="toggleConfig" type="button" style="margin-bottom:1rem;">Hide Config &#x25B2;</button>
       <div id="configContent">
         <form id="addStreamForm">
           <label for="streamUrl">
@@ -353,7 +445,6 @@
         </div>
         <div class="viewport-control">
           <span class="switch">
-            <input type="checkbox" id="fillViewport">
             <input type="checkbox" id="fillViewport" aria-label="Fill viewport">
             <label for="fillViewport">Fill viewport</label>
           </span>
@@ -362,6 +453,7 @@
         <div id="feedListContainer">
           <h3 style="margin-top:1.5rem;">Current Feeds</h3>
           <ul id="feedList" style="list-style:none;padding:0;margin:0;"></ul>
+          <button type="button" id="resetDefaults" class="reset-btn" style="margin-top:0.75rem;">Reset to defaults</button>
         </div>
       </div>
     </section>
@@ -373,7 +465,7 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.6/dist/hls.min.js" crossorigin="anonymous"></script>
   <script>
     (function () {
-      const tiles = document.getElementById('tiles');
+      const tilesContainer = document.getElementById('tiles');
       const emptyState = document.getElementById('emptyState');
       const form = document.getElementById('addStreamForm');
       const urlInput = document.getElementById('streamUrl');
@@ -383,14 +475,28 @@
       const feedListContainer = document.getElementById('feedListContainer');
       const toggleConfig = document.getElementById('toggleConfig');
       const configContent = document.getElementById('configContent');
-      const fillViewport = document.getElementById('fillViewport');
+      const fillViewportCheckbox = document.getElementById('fillViewport');
+      const resetDefaultsBtn = document.getElementById('resetDefaults');
       const STORAGE_KEY = 'webcamTiles:feeds';
       const SETTINGS_KEY = 'webcamTiles:settings';
+      const DEFAULT_FEEDS = [
+        { url: 'https://camsecure.co/HLS/salterns.m3u8' },
+        { url: 'https://camsecure.co/HLS/swanagecamlifeboat.m3u8' },
+        { url: 'https://camsecure.uk/HLS/charmouth.m3u8' },
+      ];
 
+      let nextFeedId = 1;
+      const tileMap = new Map();
       let feeds = [];
       let settings = {
         fillViewport: false,
+        layout: 'auto',
+        configVisible: true,
       };
+
+      function generateFeedId() {
+        return nextFeedId++;
+      }
 
       function loadFeedsFromStorage() {
         try {
@@ -402,7 +508,7 @@
             .map(item => {
               if (!item || typeof item.url !== 'string') return null;
               const trimmed = item.url.trim();
-              return trimmed ? { url: trimmed } : null;
+              return trimmed ? { id: generateFeedId(), url: trimmed } : null;
             })
             .filter(Boolean);
         } catch (error) {
@@ -413,7 +519,8 @@
 
       function persistFeeds() {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(feeds));
+          const toSave = feeds.map(f => ({ url: f.url }));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
         } catch (error) {
           console.warn('Unable to save feeds:', error);
         }
@@ -428,6 +535,8 @@
           return {
             ...settings,
             fillViewport: Boolean(parsed.fillViewport),
+            layout: typeof parsed.layout === 'string' ? parsed.layout : 'auto',
+            configVisible: parsed.configVisible !== undefined ? Boolean(parsed.configVisible) : true,
           };
         } catch (error) {
           console.warn('Unable to load settings:', error);
@@ -445,17 +554,21 @@
 
       function applyViewportSetting() {
         document.body.classList.toggle('fill-viewport', settings.fillViewport);
-        fillViewport.checked = settings.fillViewport;
+        fillViewportCheckbox.checked = settings.fillViewport;
       }
 
-      function refreshFeedsUI() {
-        renderTiles();
-        renderFeedList();
-        persistFeeds();
+      function applyLayoutSetting() {
+        layoutSelect.value = settings.layout;
+        updateLayout();
+      }
+
+      function applyConfigVisibility() {
+        configContent.style.display = settings.configVisible ? '' : 'none';
+        toggleConfig.textContent = settings.configVisible ? 'Hide Config \u25B2' : 'Show Config \u25BC';
       }
 
       function updateEmptyState() {
-        emptyState.hidden = tiles.children.length > 0;
+        emptyState.hidden = tilesContainer.children.length > 0;
       }
 
       function computeAutoColumns(count) {
@@ -466,7 +579,7 @@
       }
 
       function updateLayout() {
-        const count = tiles.children.length;
+        const count = tilesContainer.children.length;
         const selection = layoutSelect.value;
         let columns = 1;
         if (selection === 'auto') {
@@ -474,7 +587,7 @@
         } else {
           columns = parseInt(selection, 10) || 1;
         }
-        tiles.style.setProperty('--columns', columns);
+        tilesContainer.style.setProperty('--columns', columns);
       }
 
       function getFeedName(url) {
@@ -498,25 +611,29 @@
           nameSpan.style.flex = '1';
 
           const upBtn = document.createElement('button');
-          upBtn.textContent = '▲';
+          upBtn.textContent = '\u25B2';
           upBtn.title = 'Move up';
+          upBtn.className = 'feed-action';
           upBtn.disabled = idx === 0;
           upBtn.onclick = () => moveFeed(idx, idx - 1);
 
           const downBtn = document.createElement('button');
-          downBtn.textContent = '▼';
+          downBtn.textContent = '\u25BC';
           downBtn.title = 'Move down';
+          downBtn.className = 'feed-action';
           downBtn.disabled = idx === feeds.length - 1;
           downBtn.onclick = () => moveFeed(idx, idx + 1);
 
           const reloadBtn = document.createElement('button');
-          reloadBtn.textContent = '⟳';
+          reloadBtn.textContent = '\u27F3';
           reloadBtn.title = 'Reload feed';
+          reloadBtn.className = 'feed-action';
           reloadBtn.onclick = () => reloadFeed(idx);
 
           const delBtn = document.createElement('button');
-          delBtn.textContent = '✖';
+          delBtn.textContent = '\u2716';
           delBtn.title = 'Delete feed';
+          delBtn.className = 'feed-action';
           delBtn.onclick = () => removeFeed(idx);
 
           li.appendChild(nameSpan);
@@ -529,40 +646,96 @@
         feedListContainer.hidden = feeds.length === 0;
       }
 
-      function moveFeed(from, to) {
-        if (to < 0 || to >= feeds.length) return;
-        const [moved] = feeds.splice(from, 1);
-        feeds.splice(to, 0, moved);
-        refreshFeedsUI();
+      function addFeed(url) {
+        const feed = { id: generateFeedId(), url: url };
+        feeds.push(feed);
+        createTile(feed);
+        updateEmptyState();
+        updateLayout();
+        renderFeedList();
+        persistFeeds();
       }
 
       function removeFeed(idx) {
-        feeds.splice(idx, 1);
-        refreshFeedsUI();
+        const removed = feeds.splice(idx, 1)[0];
+        const tile = tileMap.get(removed.id);
+        if (tile) {
+          const video = tile.querySelector('video');
+          if (video) destroyTile(tile, video);
+          else tile.remove();
+          tileMap.delete(removed.id);
+        }
+        updateEmptyState();
+        updateLayout();
+        renderFeedList();
+        persistFeeds();
+      }
+
+      function moveFeed(from, to) {
+        if (to < 0 || to >= feeds.length) return;
+        const moved = feeds.splice(from, 1)[0];
+        feeds.splice(to, 0, moved);
+        feeds.forEach(feed => {
+          const tile = tileMap.get(feed.id);
+          if (tile) tilesContainer.appendChild(tile);
+        });
+        renderFeedList();
+        persistFeeds();
       }
 
       function reloadFeed(idx) {
-        const url = feeds[idx].url;
-        feeds.splice(idx, 1);
-        feeds.splice(idx, 0, { url });
-        refreshFeedsUI();
+        const feed = feeds[idx];
+        const tile = tileMap.get(feed.id);
+        if (!tile) return;
+        const video = tile.querySelector('video');
+        if (!video) return;
+        var hlsInstance = hlsPlayers.get(video);
+        if (hlsInstance) {
+          hlsInstance.destroy();
+          hlsPlayers.delete(video);
+        }
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        var errorOverlay = tile.querySelector('.tile-error');
+        if (errorOverlay) errorOverlay.remove();
+        var loading = tile.querySelector('.tile-loading');
+        if (loading) loading.hidden = false;
+        attachStream(video, feed.url, tile);
       }
 
-      function renderTiles() {
-        // Remove all tiles
-        while (tiles.firstChild) {
-          const tile = tiles.firstChild;
-          const video = tile.querySelector('video');
-          if (video) removeTile(tile, video);
+      function renderAllTiles() {
+        while (tilesContainer.firstChild) {
+          var tile = tilesContainer.firstChild;
+          var video = tile.querySelector('video');
+          if (video) destroyTile(tile, video);
           else tile.remove();
         }
-        // Add tiles for each feed
-        feeds.forEach(feed => createTile(feed.url));
+        tileMap.clear();
+        feeds.forEach(feed => createTile(feed));
         updateEmptyState();
         updateLayout();
       }
 
-      function createTile(url) {
+      function resetToDefaults() {
+        feeds.forEach(feed => {
+          var tile = tileMap.get(feed.id);
+          if (tile) {
+            var video = tile.querySelector('video');
+            if (video) destroyTile(tile, video);
+            else tile.remove();
+          }
+        });
+        tileMap.clear();
+        feeds = DEFAULT_FEEDS.map(f => ({ id: generateFeedId(), url: f.url }));
+        feeds.forEach(feed => createTile(feed));
+        updateEmptyState();
+        updateLayout();
+        renderFeedList();
+        persistFeeds();
+      }
+
+      function createTile(feed) {
         const tile = document.createElement('article');
         tile.className = 'tile';
 
@@ -572,19 +745,22 @@
         video.playsInline = true;
         video.setAttribute('preload', 'auto');
 
+        const loading = document.createElement('div');
+        loading.className = 'tile-loading';
+
         const footer = document.createElement('footer');
         footer.className = 'tile-footer';
 
         const urlLabel = document.createElement('span');
         urlLabel.className = 'stream-url';
-        urlLabel.title = url;
-        urlLabel.textContent = url;
+        urlLabel.title = feed.url;
+        urlLabel.textContent = getFeedName(feed.url);
 
         const actions = document.createElement('div');
         actions.className = 'tile-actions';
 
         const openLink = document.createElement('a');
-        openLink.href = url;
+        openLink.href = feed.url;
         openLink.target = '_blank';
         openLink.rel = 'noopener noreferrer';
         openLink.textContent = 'Open stream';
@@ -594,13 +770,15 @@
         footer.appendChild(actions);
 
         tile.appendChild(video);
+        tile.appendChild(loading);
         tile.appendChild(footer);
 
-        attachStream(video, url);
-        tiles.appendChild(tile);
+        attachStream(video, feed.url, tile);
+        tilesContainer.appendChild(tile);
+        tileMap.set(feed.id, tile);
       }
 
-      function removeTile(tile, video) {
+      function destroyTile(tile, video) {
         const hlsInstance = hlsPlayers.get(video);
         if (hlsInstance) {
           hlsInstance.destroy();
@@ -612,9 +790,49 @@
         tile.remove();
       }
 
-      function attachStream(video, url) {
+      function showError(tile, url) {
+        var loading = tile.querySelector('.tile-loading');
+        if (loading) loading.hidden = true;
+        var existing = tile.querySelector('.tile-error');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'tile-error';
+
+        const msg = document.createElement('p');
+        msg.textContent = 'Stream unavailable';
+
+        const retryBtn = document.createElement('button');
+        retryBtn.textContent = 'Retry';
+        retryBtn.className = 'retry-btn';
+        retryBtn.onclick = function () {
+          overlay.remove();
+          var video = tile.querySelector('video');
+          var hlsInstance = hlsPlayers.get(video);
+          if (hlsInstance) {
+            hlsInstance.destroy();
+            hlsPlayers.delete(video);
+          }
+          video.pause();
+          video.removeAttribute('src');
+          video.load();
+          var ld = tile.querySelector('.tile-loading');
+          if (ld) ld.hidden = false;
+          attachStream(video, url, tile);
+        };
+
+        overlay.appendChild(msg);
+        overlay.appendChild(retryBtn);
+        tile.appendChild(overlay);
+      }
+
+      function attachStream(video, url, tile) {
+        var existingError = tile.querySelector('.tile-error');
+        if (existingError) existingError.remove();
+
         if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = url;
+          video.addEventListener('error', function () { showError(tile, url); }, { once: true });
         } else if (window.Hls && window.Hls.isSupported()) {
           const hls = new Hls({
             enableWorker: true,
@@ -625,48 +843,64 @@
           hls.loadSource(url);
           hls.attachMedia(video);
           hlsPlayers.set(video, hls);
+          hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+              showError(tile, url);
+            }
+          });
         } else {
           video.src = url;
+          video.addEventListener('error', function () { showError(tile, url); }, { once: true });
         }
-        const tryPlay = () => {
-          const playPromise = video.play();
+
+        video.addEventListener('loadedmetadata', function () {
+          var loading = tile.querySelector('.tile-loading');
+          if (loading) loading.hidden = true;
+          var playPromise = video.play();
           if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch(() => {});
+            playPromise.catch(function () {});
           }
-        };
-        video.addEventListener('loadedmetadata', tryPlay, { once: true });
+        }, { once: true });
       }
 
       form.addEventListener('submit', function (event) {
         event.preventDefault();
         const url = urlInput.value.trim();
         if (!url) return;
-        feeds.push({ url });
-        refreshFeedsUI();
+        addFeed(url);
         form.reset();
         urlInput.focus();
       });
 
-      layoutSelect.addEventListener('change', updateLayout);
+      layoutSelect.addEventListener('change', function () {
+        settings.layout = layoutSelect.value;
+        updateLayout();
+        persistSettings();
+      });
 
-      fillViewport.addEventListener('change', function () {
-        settings.fillViewport = fillViewport.checked;
+      fillViewportCheckbox.addEventListener('change', function () {
+        settings.fillViewport = fillViewportCheckbox.checked;
         applyViewportSetting();
         persistSettings();
       });
 
-      // Collapsible config section
-      let configVisible = true;
       toggleConfig.addEventListener('click', function () {
-        configVisible = !configVisible;
-        configContent.style.display = configVisible ? '' : 'none';
-        toggleConfig.textContent = configVisible ? 'Hide Config ▲' : 'Show Config ▼';
+        settings.configVisible = !settings.configVisible;
+        applyConfigVisibility();
+        persistSettings();
       });
 
-      feeds = loadFeedsFromStorage();
+      resetDefaultsBtn.addEventListener('click', resetToDefaults);
+
+      // Initialize
+      const storedFeeds = loadFeedsFromStorage();
+      feeds = storedFeeds.length > 0 ? storedFeeds : DEFAULT_FEEDS.map(f => ({ id: generateFeedId(), url: f.url }));
       settings = loadSettings();
       applyViewportSetting();
-      refreshFeedsUI();
+      applyLayoutSetting();
+      applyConfigVisibility();
+      renderAllTiles();
+      renderFeedList();
     })();
   </script>
 </body>
