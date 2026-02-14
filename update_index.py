@@ -31,13 +31,26 @@ def generate_tools_html() -> str:
 def main() -> None:
   content = INDEX_PATH.read_text(encoding="utf-8")
   tools_html = generate_tools_html()
+
   pattern = re.compile(
-    rf"{re.escape(START_MARKER)}.*?{re.escape(END_MARKER)}",
+    rf"(?m)^(?P<indent>[ \t]*){re.escape(START_MARKER)}.*?^[ \t]*{re.escape(END_MARKER)}",
     re.DOTALL,
   )
-  replacement = f"{START_MARKER}\n{tools_html}\n{END_MARKER}"
-  new_content = re.sub(pattern, replacement, content)
 
+  def replace_block(match: re.Match) -> str:
+    indent = match.group("indent")
+    indented_html = "\n".join(
+      f"{indent}{line}" if line else indent
+      for line in tools_html.splitlines()
+    )
+    return f"{indent}{START_MARKER}\n{indented_html}\n{indent}{END_MARKER}"
+
+  new_content, count = pattern.subn(replace_block, content)
+
+  if count == 0:
+    raise RuntimeError(
+      "Tool list markers not found in index.html; no changes made"
+    )
   if new_content != content:
     INDEX_PATH.write_text(new_content, encoding="utf-8")
 
