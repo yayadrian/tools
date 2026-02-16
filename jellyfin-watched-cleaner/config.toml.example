@@ -1,0 +1,19 @@
+[jellyfin]
+# Jellyfin server URL (no trailing slash)
+server_url = "http://localhost:8096"
+
+# API key — generate one in Jellyfin Dashboard > API Keys
+api_key = "your-api-key-here"
+
+# User ID — find in Jellyfin Dashboard > Users > click user > look at the URL
+user_id = "your-user-id-here"
+
+# Library name to clean (e.g. "Movies", "TV Shows")
+library_name = "Movies"
+
+# Shows/movies to exclude from deletion (case-insensitive)
+# For TV shows use the series name, for movies use the movie title
+exclude = [
+  # "Breaking Bad",
+  # "The Office",
+]
