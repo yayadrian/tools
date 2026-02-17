@@ -102,7 +102,7 @@ def get_watched_items(config, library_id):
     data = api_get(config, f"/Users/{config['user_id']}/Items", params)
     items = data.get("Items", [])
     all_items.extend(items)
-    if len(all_items) >= data.get("TotalRecordCount", 0):
+    if not items or len(all_items) >= data.get("TotalRecordCount", 0):
       break
     params["StartIndex"] += len(items)
   return all_items
@@ -115,7 +115,7 @@ def main():
   parser.add_argument(
     "--confirm",
     action="store_true",
-    help="Actually delete files. Without this flag, runs in dry-run mode.",
+    help="Actually delete items. Without this flag, runs in dry-run mode.",
   )
   args = parser.parse_args()
 
@@ -152,9 +152,13 @@ def main():
     series = item.get("SeriesName")
     path = item.get("Path", "N/A")
     if series:
-      episode = item.get("IndexNumber", "?")
-      season = item.get("ParentIndexNumber", "?")
-      print(f"  {series} - S{season:02d}E{episode:02d} - {name}")
+      episode = item.get("IndexNumber")
+      season = item.get("ParentIndexNumber")
+      if isinstance(season, int) and isinstance(episode, int):
+        se_str = f"S{season:02d}E{episode:02d}"
+      else:
+        se_str = "S??E??"
+      print(f"  {series} - {se_str} - {name}")
     else:
       print(f"  {name}")
     print(f"    Path: {path}")
