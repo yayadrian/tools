@@ -354,8 +354,8 @@ function update() {
   const elapsed = (now - start) / 86400000;
   const progress = elapsed / totalDays;
 
-  // Clock hand: 0 = top (Q1 start), rotates clockwise 360deg over the year
-  const angle = progress * 360;
+  // Clock hand: -90deg = top (Q1 start), rotates clockwise 360deg over the year
+  const angle = -90 + progress * 360;
   document.querySelector(".clock-hand").style.setProperty("--hand-angle", `${angle}deg`);
 
   // Progress ring
