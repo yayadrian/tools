@@ -4,5 +4,26 @@
     "gridMinColumnWidth": 380,
     "aspectRatio": "16 / 9"
   },
-  "webcams": []
+  "webcams": [
+    {
+      "name": "Swanage Lifeboat Station",
+      "snapshotUrl": "https://webcamsnapshot.yayproject.com/snapshot?url=https://swanagelifeboat.org.uk/webcam/",
+      "linkUrl": "https://swanagelifeboat.org.uk/webcam/"
+    },
+    {
+      "name": "Swanage Bay",
+      "snapshotUrl": "https://webcamsnapshot.yayproject.com/snapshot?url=https://www.swanage.gov.uk/webcam",
+      "linkUrl": "https://www.swanage.gov.uk/webcam"
+    },
+    {
+      "name": "Bournemouth Beach",
+      "snapshotUrl": "https://webcamsnapshot.yayproject.com/snapshot?url=https://www.bournemouthbeach.co.uk/webcam",
+      "linkUrl": "https://www.bournemouthbeach.co.uk/webcam"
+    },
+    {
+      "name": "Sandbanks Ferry",
+      "snapshotUrl": "https://webcamsnapshot.yayproject.com/snapshot?url=https://www.sandbanksferry.co.uk/webcam",
+      "linkUrl": "https://www.sandbanksferry.co.uk/webcam"
+    }
+  ]
 }
