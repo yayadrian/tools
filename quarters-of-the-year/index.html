@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quarters of the year</title>
+  <style>*{box-sizing:border-box}
+    :root {
+      --q1: #4a90d9;
+      --q1-bg: #1a2a4a;
+      --q1-light: #a8ccee;
+      --q2: #5ab87a;
+      --q2-bg: #1a3a26;
+      --q2-light: #a8e6bf;
+      --q3: #e6b840;
+      --q3-bg: #3a3018;
+      --q3-light: #f5dfa0;
+      --q4: #d4693a;
+      --q4-bg: #3a2218;
+      --q4-light: #f0b898;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      font-family: "Helvetica Neue", Arial, system-ui, -apple-system, sans-serif;
+      background: #0e1117;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      height: 100vh;
+      width: 100vw;
+      position: relative;
+    }
+
+    .quarter {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      transition: all 0.4s ease;
+    }
+
+    /* Q1 – Winter: top-left (12 o'clock start) */
+    .q1 {
+      background: linear-gradient(135deg, #1b2e54, var(--q1-bg));
+      border-right: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Q2 – Spring: top-right (3 o'clock) */
+    .q2 {
+      background: linear-gradient(225deg, #1e4430, var(--q2-bg));
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Q3 – Summer: bottom-right (6 o'clock) */
+    .q3 {
+      background: linear-gradient(315deg, #4a3a10, var(--q3-bg));
+    }
+
+    /* Q4 – Autumn: bottom-left (9 o'clock) */
+    .q4 {
+      background: linear-gradient(45deg, #4a2510, var(--q4-bg));
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .quarter-number {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      opacity: 0.25;
+      position: absolute;
+      top: 0.6rem;
+      line-height: 1;
+    }
+
+    .q1 .quarter-number { left: 0.8rem; color: var(--q1); }
+    .q2 .quarter-number { right: 0.8rem; color: var(--q2); }
+    .q3 .quarter-number { right: 0.8rem; color: var(--q3); }
+    .q4 .quarter-number { left: 0.8rem; color: var(--q4); }
+
+    .season-label {
+      font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .q1 .season-label { color: var(--q1-light); }
+    .q2 .season-label { color: var(--q2-light); }
+    .q3 .season-label { color: var(--q3-light); }
+    .q4 .season-label { color: var(--q4-light); }
+
+    .months {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .month {
+      font-size: clamp(1rem, 2.5vw, 1.6rem);
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      padding: 0.25rem 1.2rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .q1 .month { color: var(--q1-light); }
+    .q2 .month { color: var(--q2-light); }
+    .q3 .month { color: var(--q3-light); }
+    .q4 .month { color: var(--q4-light); }
+
+    /* Current quarter highlight */
+    .quarter.current {
+      box-shadow: inset 0 0 80px rgba(255,255,255,0.04);
+    }
+
+    .quarter.current .quarter-number {
+      opacity: 0.5;
+    }
+
+    .current-badge {
+      display: none;
+      font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      margin-top: 1rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .quarter.current .current-badge {
+      display: inline-block;
+    }
+
+    .q1 .current-badge { background: rgba(74,144,217,0.2); color: var(--q1-light); border: 1px solid rgba(74,144,217,0.3); }
+    .q2 .current-badge { background: rgba(90,184,122,0.2); color: var(--q2-light); border: 1px solid rgba(90,184,122,0.3); }
+    .q3 .current-badge { background: rgba(230,184,64,0.2); color: var(--q3-light); border: 1px solid rgba(230,184,64,0.3); }
+    .q4 .current-badge { background: rgba(212,105,58,0.2); color: var(--q4-light); border: 1px solid rgba(212,105,58,0.3); }
+
+    .month.current-month {
+      border-radius: 8px;
+      font-weight: 800;
+    }
+
+    .q1 .month.current-month { background: rgba(74,144,217,0.18); text-shadow: 0 0 20px rgba(74,144,217,0.4); }
+    .q2 .month.current-month { background: rgba(90,184,122,0.18); text-shadow: 0 0 20px rgba(90,184,122,0.4); }
+    .q3 .month.current-month { background: rgba(230,184,64,0.18); text-shadow: 0 0 20px rgba(230,184,64,0.4); }
+    .q4 .month.current-month { background: rgba(212,105,58,0.18); text-shadow: 0 0 20px rgba(212,105,58,0.4); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Clock-hand indicator */
+    .clock-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .clock-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 20px rgba(255,255,255,0.5);
+    }
+
+    .clock-hand {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 3px;
+      height: min(20vh, 120px);
+      background: linear-gradient(to top, transparent, rgba(255,255,255,0.7));
+      transform-origin: bottom center;
+      border-radius: 2px;
+      z-index: 9;
+      transform: translate(-50%, -100%) rotate(var(--hand-angle, 0deg));
+      transition: transform 1s ease;
+      box-shadow: 0 0 12px rgba(255,255,255,0.3);
+    }
+
+    /* Progress arc ring around center */
+    .clock-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      z-index: 8;
+    }
+
+    .clock-ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .clock-ring circle {
+      fill: none;
+      stroke-width: 3;
+    }
+
+    .ring-track {
+      stroke: rgba(255,255,255,0.1);
+    }
+
+    .ring-progress {
+      stroke: rgba(255,255,255,0.6);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s ease;
+    }
+
+    /* Quarter tick marks */
+    .tick {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2px;
+      height: 10px;
+      background: rgba(255,255,255,0.25);
+      transform-origin: center 0;
+      z-index: 8;
+      border-radius: 1px;
+    }
+
+    .tick-q1 { transform: translate(-50%, -42px) rotate(0deg); }
+    .tick-q2 { transform: translate(-50%, -42px) rotate(90deg); }
+    .tick-q3 { transform: translate(-50%, -42px) rotate(180deg); }
+    .tick-q4 { transform: translate(-50%, -42px) rotate(270deg); }
+
+    @media (max-width: 500px) {
+      .quarter { padding: 1rem 0.5rem; }
+      .month { padding: 0.15rem 0.6rem; }
+      .clock-dot { width: 12px; height: 12px; }
+      .clock-ring { width: 50px; height: 50px; }
+      .clock-hand { height: min(14vh, 70px); }
+      .tick-q1 { transform: translate(-50%, -32px) rotate(0deg); }
+      .tick-q2 { transform: translate(-50%, -32px) rotate(90deg); }
+      .tick-q3 { transform: translate(-50%, -32px) rotate(180deg); }
+      .tick-q4 { transform: translate(-50%, -32px) rotate(270deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Quarters of the year – a clock-style view of the four fiscal quarters with seasonal colours -->
+  <div class="grid">
+    <section class="quarter q1" aria-label="Quarter 1 – Winter">
+      <div class="quarter-number">Q1</div>
+      <div class="season-label">Winter</div>
+      <div class="months">
+        <div class="month" data-month="0">January</div>
+        <div class="month" data-month="1">February</div>
+        <div class="month" data-month="2">March</div>
+      </div>
+      <div class="current-badge" aria-live="polite">Now</div>
+    </section>
+
+    <section class="quarter q2" aria-label="Quarter 2 – Spring">
+      <div class="quarter-number">Q2</div>
+      <div class="season-label">Spring</div>
+      <div class="months">
+        <div class="month" data-month="3">April</div>
+        <div class="month" data-month="4">May</div>
+        <div class="month" data-month="5">June</div>
+      </div>
+      <div class="current-badge" aria-live="polite">Now</div>
+    </section>
+
+    <section class="quarter q4" aria-label="Quarter 4 – Autumn">
+      <div class="quarter-number">Q4</div>
+      <div class="season-label">Autumn</div>
+      <div class="months">
+        <div class="month" data-month="9">October</div>
+        <div class="month" data-month="10">November</div>
+        <div class="month" data-month="11">December</div>
+      </div>
+      <div class="current-badge" aria-live="polite">Now</div>
+    </section>
+
+    <section class="quarter q3" aria-label="Quarter 3 – Summer">
+      <div class="quarter-number">Q3</div>
+      <div class="season-label">Summer</div>
+      <div class="months">
+        <div class="month" data-month="6">July</div>
+        <div class="month" data-month="7">August</div>
+        <div class="month" data-month="8">September</div>
+      </div>
+      <div class="current-badge" aria-live="polite">Now</div>
+    </section>
+
+    <!-- Clock overlay at the centre intersection -->
+    <div class="clock-center">
+      <div class="tick tick-q1"></div>
+      <div class="tick tick-q2"></div>
+      <div class="tick tick-q3"></div>
+      <div class="tick tick-q4"></div>
+      <div class="clock-ring">
+        <svg viewBox="0 0 70 70">
+          <circle class="ring-track" cx="35" cy="35" r="30" />
+          <circle class="ring-progress" cx="35" cy="35" r="30" />
+        </svg>
+      </div>
+      <div class="clock-hand"></div>
+      <div class="clock-dot"></div>
+    </div>
+  </div>
+
+  <script type="module">
+const CIRCUMFERENCE = 2 * Math.PI * 30;
+
+function update() {
+  const now = new Date();
+  const month = now.getMonth();
+  const day = now.getDate();
+  const currentQuarter = Math.floor(month / 3) + 1;
+
+  // Highlight current quarter
+  document.querySelectorAll(".quarter").forEach(el => el.classList.remove("current"));
+  const qClass = `.q${currentQuarter}`;
+  document.querySelector(qClass)?.classList.add("current");
+
+  // Highlight current month
+  document.querySelectorAll(".month").forEach(el => {
+    el.classList.toggle("current-month", Number(el.dataset.month) === month);
+  });
+
+  // Calculate year progress for the clock hand
+  // Day-of-year as a fraction of total days
+  const start = new Date(now.getFullYear(), 0, 1);
+  const end = new Date(now.getFullYear() + 1, 0, 1);
+  const totalDays = (end - start) / 86400000;
+  const elapsed = (now - start) / 86400000;
+  const progress = elapsed / totalDays;
+
+  // Clock hand: 0 = top (Q1 start), rotates clockwise 360deg over the year
+  const angle = progress * 360;
+  document.querySelector(".clock-hand").style.setProperty("--hand-angle", `${angle}deg`);
+
+  // Progress ring
+  const ring = document.querySelector(".ring-progress");
+  ring.style.strokeDasharray = `${CIRCUMFERENCE}`;
+  ring.style.strokeDashoffset = `${CIRCUMFERENCE * (1 - progress)}`;
+}
+
+update();
+setInterval(update, 60000);
+  </script>
+</body>
+</html>
