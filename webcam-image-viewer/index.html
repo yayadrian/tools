@@ -117,6 +117,21 @@
       transition: opacity 0.3s ease;
     }
 
+    .tile-image-wrap img:not([src]) {
+      visibility: hidden;
+    }
+
+    .tile-crossfade-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
     .tile-image-wrap .gif-layer {
       position: absolute;
       inset: 0;
@@ -699,28 +714,70 @@ async function loadTileImage(webcam) {
   if (!tile) return;
 
   const loading = tile.querySelector('.tile-loading-overlay');
+  const imageWrap = tile.querySelector('.tile-image-wrap');
   const jpgImg = tile.querySelector('.jpg-layer');
   const gifImg = tile.querySelector('.gif-layer');
   const existingError = tile.querySelector('.tile-error-overlay');
   if (existingError) existingError.remove();
-  if (loading) loading.hidden = false;
+
+  const hasLoadedImage = jpgImg.dataset.loaded === 'true';
+  if (!hasLoadedImage && loading) loading.hidden = false;
 
   try {
     const data = await fetchSnapshot(webcam.snapshotUrl);
     tileData.set(webcam.id, data);
 
-    jpgImg.src = data.jpgUrl;
-    if (data.gifUrl) {
-      gifImg.src = data.gifUrl;
-    }
+    if (!hasLoadedImage) {
+      // First load: fade image in once loaded
+      jpgImg.style.opacity = '0';
+      jpgImg.src = data.jpgUrl;
+      if (data.gifUrl) gifImg.src = data.gifUrl;
+      else gifImg.removeAttribute('src');
 
-    jpgImg.onload = () => {
-      if (loading) loading.hidden = true;
-    };
-    jpgImg.onerror = () => {
-      if (loading) loading.hidden = true;
-      showTileError(tile, webcam);
-    };
+      jpgImg.onload = () => {
+        jpgImg.dataset.loaded = 'true';
+        if (loading) loading.hidden = true;
+        requestAnimationFrame(() => { jpgImg.style.opacity = '1'; });
+      };
+      jpgImg.onerror = () => {
+        if (loading) loading.hidden = true;
+        showTileError(tile, webcam);
+      };
+    } else {
+      // Subsequent load: crossfade new image over the old one
+      const preload = new Image();
+      preload.onload = () => {
+        const overlay = document.createElement('img');
+        overlay.className = 'tile-crossfade-overlay';
+        overlay.src = data.jpgUrl;
+        imageWrap.appendChild(overlay);
+
+        function finishCrossfade() {
+          jpgImg.src = data.jpgUrl;
+          if (data.gifUrl) gifImg.src = data.gifUrl;
+          else gifImg.removeAttribute('src');
+          overlay.remove();
+          if (loading) loading.hidden = true;
+        }
+
+        // Trigger the CSS transition after the element is in the DOM
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+        });
+
+        // Clean up after transition (with fallback timeout)
+        const fallback = setTimeout(finishCrossfade, 1200);
+        overlay.addEventListener('transitionend', () => {
+          clearTimeout(fallback);
+          finishCrossfade();
+        }, { once: true });
+      };
+      preload.onerror = () => {
+        if (loading) loading.hidden = true;
+        showTileError(tile, webcam);
+      };
+      preload.src = data.jpgUrl;
+    }
   } catch {
     if (loading) loading.hidden = true;
     showTileError(tile, webcam);
@@ -771,9 +828,21 @@ function updateEmptyState() {
 
 // --- Refresh ---
 
-function refreshAllImages() {
-  webcams.forEach(webcam => loadTileImage(webcam));
-  updateRefreshInfo();
+let isRefreshing = false;
+async function refreshAllImages() {
+  if (isRefreshing) return;
+  isRefreshing = true;
+  try {
+    for (let i = 0; i < webcams.length; i++) {
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+      loadTileImage(webcams[i]);
+    }
+    updateRefreshInfo();
+  } finally {
+    isRefreshing = false;
+  }
 }
 
 function updateRefreshInfo() {
