@@ -720,20 +720,22 @@ async function loadTileImage(webcam) {
   const existingError = tile.querySelector('.tile-error-overlay');
   if (existingError) existingError.remove();
 
-  const hasExistingImage = jpgImg.hasAttribute('src');
-  if (!hasExistingImage && loading) loading.hidden = false;
+  const hasLoadedImage = jpgImg.dataset.loaded === 'true';
+  if (!hasLoadedImage && loading) loading.hidden = false;
 
   try {
     const data = await fetchSnapshot(webcam.snapshotUrl);
     tileData.set(webcam.id, data);
 
-    if (!hasExistingImage) {
+    if (!hasLoadedImage) {
       // First load: fade image in once loaded
       jpgImg.style.opacity = '0';
       jpgImg.src = data.jpgUrl;
       if (data.gifUrl) gifImg.src = data.gifUrl;
+      else gifImg.removeAttribute('src');
 
       jpgImg.onload = () => {
+        jpgImg.dataset.loaded = 'true';
         if (loading) loading.hidden = true;
         requestAnimationFrame(() => { jpgImg.style.opacity = '1'; });
       };
@@ -753,6 +755,7 @@ async function loadTileImage(webcam) {
         function finishCrossfade() {
           jpgImg.src = data.jpgUrl;
           if (data.gifUrl) gifImg.src = data.gifUrl;
+          else gifImg.removeAttribute('src');
           overlay.remove();
           if (loading) loading.hidden = true;
         }
@@ -825,14 +828,21 @@ function updateEmptyState() {
 
 // --- Refresh ---
 
+let isRefreshing = false;
 async function refreshAllImages() {
-  for (let i = 0; i < webcams.length; i++) {
-    if (i > 0) {
-      await new Promise(resolve => setTimeout(resolve, 10000));
+  if (isRefreshing) return;
+  isRefreshing = true;
+  try {
+    for (let i = 0; i < webcams.length; i++) {
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+      loadTileImage(webcams[i]);
     }
-    loadTileImage(webcams[i]);
+    updateRefreshInfo();
+  } finally {
+    isRefreshing = false;
   }
-  updateRefreshInfo();
 }
 
 function updateRefreshInfo() {
