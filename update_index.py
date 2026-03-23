@@ -6,34 +6,46 @@ import re
 
 REPO_ROOT = Path(__file__).resolve().parent
 INDEX_PATH = REPO_ROOT / "index.html"
-START_MARKER = "<!-- TOOLS-LIST START -->"
-END_MARKER = "<!-- TOOLS-LIST END -->"
 EXCLUDED_DIRS = {".git", ".github", "__pycache__", "node_modules"}
 
+MARKERS = {
+  "web": ("<!-- WEB-TOOLS-LIST START -->", "<!-- WEB-TOOLS-LIST END -->"),
+  "python": ("<!-- PYTHON-TOOLS-LIST START -->", "<!-- PYTHON-TOOLS-LIST END -->"),
+}
 
-def generate_tools_html() -> str:
-  tools = [
-    directory.name
-    for directory in REPO_ROOT.iterdir()
-    if directory.is_dir()
-    and not directory.name.startswith(".")
-    and directory.name not in EXCLUDED_DIRS
-  ]
-  tools.sort()
 
+def classify_tools() -> tuple[list[str], list[str]]:
+  web_tools = []
+  python_tools = []
+  for directory in REPO_ROOT.iterdir():
+    if not directory.is_dir():
+      continue
+    if directory.name.startswith(".") or directory.name in EXCLUDED_DIRS:
+      continue
+    if (directory / "index.html").exists():
+      web_tools.append(directory.name)
+    else:
+      python_tools.append(directory.name)
+  web_tools.sort()
+  python_tools.sort()
+  return web_tools, python_tools
+
+
+def build_list_html(tools: list[str], link: bool = True) -> str:
   if not tools:
     return "<p>No tools found.</p>"
-
-  items = "\n".join(f'  <li><a href="{tool}/">{tool}</a></li>' for tool in tools)
+  if link:
+    items = "\n".join(
+      f'  <li><a href="{tool}/">{tool}</a></li>' for tool in tools
+    )
+  else:
+    items = "\n".join(f"  <li>{tool}</li>" for tool in tools)
   return f"<ul>\n{items}\n</ul>"
 
 
-def main() -> None:
-  content = INDEX_PATH.read_text(encoding="utf-8")
-  tools_html = generate_tools_html()
-
+def replace_marker_block(content: str, start: str, end: str, html: str) -> tuple[str, int]:
   pattern = re.compile(
-    rf"(?m)^(?P<indent>[ \t]*){re.escape(START_MARKER)}.*?^[ \t]*{re.escape(END_MARKER)}",
+    rf"(?m)^(?P<indent>[ \t]*){re.escape(start)}.*?^[ \t]*{re.escape(end)}",
     re.DOTALL,
   )
 
@@ -41,18 +53,32 @@ def main() -> None:
     indent = match.group("indent")
     indented_html = "\n".join(
       f"{indent}{line}" if line else indent
-      for line in tools_html.splitlines()
+      for line in html.splitlines()
     )
-    return f"{indent}{START_MARKER}\n{indented_html}\n{indent}{END_MARKER}"
+    return f"{indent}{start}\n{indented_html}\n{indent}{end}"
 
-  new_content, count = pattern.subn(replace_block, content)
+  return pattern.subn(replace_block, content)
 
-  if count == 0:
+
+def main() -> None:
+  content = INDEX_PATH.read_text(encoding="utf-8")
+  web_tools, python_tools = classify_tools()
+
+  web_html = build_list_html(web_tools, link=True)
+  python_html = build_list_html(python_tools, link=False)
+
+  web_start, web_end = MARKERS["web"]
+  py_start, py_end = MARKERS["python"]
+
+  content, web_count = replace_marker_block(content, web_start, web_end, web_html)
+  content, py_count = replace_marker_block(content, py_start, py_end, python_html)
+
+  if web_count == 0 or py_count == 0:
     raise RuntimeError(
-      "Tool list markers not found in index.html; no changes made"
+      "One or more tool list markers not found in index.html; no changes made"
     )
-  if new_content != content:
-    INDEX_PATH.write_text(new_content, encoding="utf-8")
+
+  INDEX_PATH.write_text(content, encoding="utf-8")
 
 
 if __name__ == "__main__":
