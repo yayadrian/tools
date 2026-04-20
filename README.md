@@ -53,6 +53,7 @@ Tools are automatically discovered and listed by scanning for directories in the
 2. **Use a tool**: Click on any tool name to open it
 3. **Run locally**: Clone the repository and open `index.html` in a web browser
 4. **Add a tool**: Create a new directory with an `index.html` file following the guidelines in `RULES.md`
+5. **Serve locally**: Run `uv run serve.py --port 8000` to start a static HTTP server for the repo
 
 ## License
 
