@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Age Search</title>
+  <style>*{box-sizing:border-box}
+    :root {
+      --bg: #f0eef5;
+      --panel: rgba(252, 250, 255, 0.86);
+      --panel-strong: rgba(252, 250, 255, 0.97);
+      --text: #1a1624;
+      --muted: #6b6478;
+      --line: rgba(26, 22, 36, 0.10);
+      --accent: #cc0000;
+      --accent-strong: #990000;
+      --accent-soft: rgba(204, 0, 0, 0.10);
+      --shadow: 0 20px 56px rgba(26, 22, 36, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    html { color-scheme: light; }
+
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(180, 0, 200, 0.08), transparent 30%),
+        radial-gradient(circle at 88% 10%, rgba(204, 0, 0, 0.12), transparent 24%),
+        linear-gradient(180deg, #f2eff8 0%, #e9e6f2 100%);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(26, 22, 36, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26, 22, 36, 0.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.28), transparent 68%);
+    }
+
+    main {
+      width: min(860px, calc(100% - 32px));
+      margin: 28px auto 56px;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-xl);
+      padding: 22px 24px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.97rem;
+      line-height: 1.5;
+    }
+
+    /* API key bar */
+    #api-key-section {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    #api-key-field {
+      flex: 1;
+      min-width: 220px;
+      display: grid;
+      gap: 7px;
+    }
+
+    #api-key-field label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    #api-key-saved {
+      font-size: 0.95rem;
+      color: var(--muted);
+      padding: 4px 0;
+    }
+
+    #api-key-saved a {
+      color: var(--accent);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    input, button { font: inherit; }
+
+    input[type="text"],
+    input[type="search"],
+    input[type="password"] {
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 16px;
+      min-height: 48px;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: rgba(204, 0, 0, 0.4);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: transform 150ms ease, box-shadow 150ms ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #ee3333 100%);
+      color: #fff;
+      box-shadow: 0 10px 24px var(--accent-soft);
+    }
+
+    .btn-ghost {
+      background: rgba(26, 22, 36, 0.06);
+      color: var(--text);
+    }
+
+    /* Search section */
+    #search-section { display: grid; gap: 16px; }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-row input {
+      flex: 1;
+    }
+
+    /* Age filter tabs */
+    .filter-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .tab-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+
+    .tab-row::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      padding: 9px 20px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
+      background: rgba(255, 255, 255, 0.72);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease;
+      color: var(--text);
+    }
+
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(204, 0, 0, 0.3);
+    }
+
+    .tab-btn[aria-selected="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 6px 18px var(--accent-soft);
+    }
+
+    .tab-btn:focus-visible {
+      outline: 3px solid var(--accent-soft);
+      outline-offset: 2px;
+    }
+
+    /* Status banner */
+    #status-banner {
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    #status-banner.loading {
+      background: rgba(26, 22, 36, 0.05);
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    #status-banner.error {
+      background: rgba(204, 0, 0, 0.07);
+      color: var(--accent-strong);
+      border: 1px solid rgba(204, 0, 0, 0.2);
+    }
+
+    #status-banner.info {
+      background: rgba(26, 22, 36, 0.05);
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    /* Results grid */
+    #results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .result-card {
+      border-radius: var(--radius-lg);
+      background: var(--panel-strong);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      box-shadow: 0 8px 28px rgba(26, 22, 36, 0.09);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: rise 320ms ease both;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .result-thumb-link {
+      display: block;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: rgba(26, 22, 36, 0.06);
+      position: relative;
+    }
+
+    .result-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 200ms ease;
+    }
+
+    .result-card:hover .result-thumb { transform: scale(1.03); }
+
+    .result-body {
+      padding: 13px 15px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+    }
+
+    .result-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      line-height: 1.35;
+      color: var(--text);
+      text-decoration: none;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .result-title:hover { color: var(--accent); }
+
+    .result-channel {
+      font-size: 0.84rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .result-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: auto;
+      padding-top: 6px;
+    }
+
+    .result-meta-dot {
+      margin: 0 5px;
+      opacity: 0.5;
+    }
+
+    /* Load more */
+    #load-more-area {
+      display: flex;
+      justify-content: center;
+      padding-top: 8px;
+    }
+
+    /* Quota note */
+    .quota-note {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+      opacity: 0.75;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      main { margin: 16px auto 40px; }
+      .panel { padding: 18px; border-radius: 22px; }
+      #results-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 1.5rem; }
+      #api-key-section { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="panel" id="hero-panel">
+      <h1>YouTube Age Search</h1>
+      <p class="subtitle">Search YouTube and only see videos that are older than a minimum age.</p>
+    </section>
+
+    <section class="panel" id="api-key-section" aria-label="API key">
+      <div id="api-key-field">
+        <label for="api-key-input">YouTube Data API v3 key</label>
+        <div id="api-key-row" style="display:flex;gap:10px;align-items:center;">
+          <input type="password" id="api-key-input" placeholder="Paste your API key here" autocomplete="off" spellcheck="false">
+          <button type="button" class="btn btn-primary" id="save-key-btn">Save</button>
+        </div>
+        <div id="api-key-saved" hidden>
+          API key saved &mdash; <a id="edit-key-link" role="button" tabindex="0">edit</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="search-section" aria-label="Search">
+      <form id="search-form" novalidate>
+        <div class="search-row">
+          <input type="search" id="search-input" placeholder="Search YouTube…" aria-label="Search query" autocomplete="off" required>
+          <button type="submit" class="btn btn-primary" id="search-btn">Search</button>
+        </div>
+      </form>
+      <div>
+        <div class="filter-label">Older than</div>
+        <div class="tab-row" role="tablist" aria-label="Minimum video age">
+          <button role="tab" class="tab-btn" data-years="1" aria-selected="false">1 year</button>
+          <button role="tab" class="tab-btn" data-years="3" aria-selected="false">3 years</button>
+          <button role="tab" class="tab-btn" data-years="5" aria-selected="true">5 years</button>
+          <button role="tab" class="tab-btn" data-years="10" aria-selected="false">10 years</button>
+          <button role="tab" class="tab-btn" data-years="15" aria-selected="false">15 years</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="status-banner" role="status" aria-live="polite" hidden></div>
+
+    <section id="results-section" hidden aria-label="Search results">
+      <div id="results-grid"></div>
+      <div id="load-more-area" hidden>
+        <button type="button" class="btn btn-ghost" id="load-more-btn">Load more</button>
+      </div>
+      <p class="quota-note" id="quota-note" hidden>Each search uses ~101 API quota units. Free tier: 10,000 units/day.</p>
+    </section>
+  </main>
+
+  <script type="module">
+const LS_KEY = 'youtube-age-search:apiKey';
+const YT_SEARCH = 'https://www.googleapis.com/youtube/v3/search';
+const YT_VIDEOS = 'https://www.googleapis.com/youtube/v3/videos';
+
+const state = {
+  apiKey: '',
+  query: '',
+  activeYears: 5,
+  results: [],
+  nextPageToken: null,
+  loading: false,
+};
+
+function loadKey() {
+  return localStorage.getItem(LS_KEY) || '';
+}
+
+function saveKey(key) {
+  localStorage.setItem(LS_KEY, key);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function publishedBeforeDate(yearsAgo) {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - yearsAgo);
+  return d.toISOString();
+}
+
+function formatDuration(iso) {
+  if (!iso) return '—';
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return '—';
+  const h = parseInt(m[1] || '0', 10);
+  const min = parseInt(m[2] || '0', 10);
+  const s = parseInt(m[3] || '0', 10);
+  const mm = String(min).padStart(h > 0 ? 2 : 1, '0');
+  const ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+function formatViews(countStr) {
+  if (countStr == null) return '—';
+  const n = parseInt(countStr, 10);
+  if (Number.isNaN(n)) return '—';
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B views`;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M views`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}K views`;
+  return `${n} views`;
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status-banner');
+  el.textContent = msg;
+  el.className = type;
+  el.hidden = false;
+}
+
+function clearStatus() {
+  document.getElementById('status-banner').hidden = true;
+}
+
+async function searchVideos(query, yearsAgo, pageToken) {
+  const params = new URLSearchParams({
+    part: 'snippet',
+    type: 'video',
+    q: query,
+    publishedBefore: publishedBeforeDate(yearsAgo),
+    maxResults: '20',
+    order: 'date',
+    key: state.apiKey,
+  });
+  if (pageToken) params.set('pageToken', pageToken);
+  const res = await fetch(`${YT_SEARCH}?${params}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const reason = err?.error?.errors?.[0]?.reason;
+    if (reason === 'quotaExceeded') throw new Error('Daily API quota exceeded. Try again tomorrow.');
+    const msg = err?.error?.message || res.statusText;
+    throw new Error(`YouTube API error ${res.status}: ${msg}`);
+  }
+  return res.json();
+}
+
+async function fetchVideoDetails(videoIds) {
+  if (!videoIds.length) return new Map();
+  const params = new URLSearchParams({
+    part: 'statistics,contentDetails',
+    id: videoIds.join(','),
+    key: state.apiKey,
+  });
+  const res = await fetch(`${YT_VIDEOS}?${params}`);
+  if (!res.ok) return new Map();
+  const data = await res.json();
+  const map = new Map();
+  for (const item of (data.items || [])) {
+    map.set(item.id, {
+      viewCount: item.statistics?.viewCount ?? null,
+      duration: item.contentDetails?.duration ?? null,
+    });
+  }
+  return map;
+}
+
+async function doSearch(isLoadMore = false) {
+  if (state.loading) return;
+  if (!state.apiKey) { showStatus('Enter your YouTube API key above to search.', 'error'); return; }
+  if (!state.query) { showStatus('Enter a search term.', 'error'); return; }
+
+  state.loading = true;
+  clearStatus();
+  showStatus(isLoadMore ? 'Loading more…' : 'Searching…', 'loading');
+  document.getElementById('load-more-btn').disabled = true;
+
+  if (!isLoadMore) {
+    state.results = [];
+    state.nextPageToken = null;
+    document.getElementById('results-grid').innerHTML = '';
+    document.getElementById('results-section').hidden = false;
+  }
+
+  try {
+    const searchData = await searchVideos(state.query, state.activeYears, isLoadMore ? state.nextPageToken : null);
+    const items = searchData.items || [];
+
+    if (!isLoadMore && items.length === 0) {
+      clearStatus();
+      showStatus(`No videos found older than ${state.activeYears} year${state.activeYears > 1 ? 's' : ''} for "${state.query}".`, 'info');
+      document.getElementById('load-more-area').hidden = true;
+      document.getElementById('quota-note').hidden = true;
+      return;
+    }
+
+    const videoIds = items.map(i => i.id.videoId).filter(Boolean);
+    const detailMap = await fetchVideoDetails(videoIds);
+
+    const newVideos = items.map(item => {
+      const id = item.id.videoId;
+      const s = item.snippet;
+      const detail = detailMap.get(id) || {};
+      return {
+        id,
+        title: s.title || '',
+        channelTitle: s.channelTitle || '',
+        publishedAt: s.publishedAt || '',
+        thumbnail: s.thumbnails?.medium?.url || s.thumbnails?.default?.url || '',
+        viewCount: detail.viewCount ?? null,
+        duration: detail.duration ?? null,
+      };
+    });
+
+    state.results = [...state.results, ...newVideos];
+    state.nextPageToken = searchData.nextPageToken || null;
+
+    appendCards(newVideos);
+
+    clearStatus();
+    document.getElementById('load-more-area').hidden = !state.nextPageToken;
+    document.getElementById('quota-note').hidden = false;
+
+  } catch (err) {
+    showStatus(err.message || 'An unexpected error occurred.', 'error');
+    if (!isLoadMore) {
+      document.getElementById('results-section').hidden = true;
+    }
+  } finally {
+    state.loading = false;
+    document.getElementById('load-more-btn').disabled = false;
+  }
+}
+
+function buildCardHTML(video) {
+  const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(video.id)}`;
+  const thumb = video.thumbnail
+    ? `<img class="result-thumb" src="${escapeHtml(video.thumbnail)}" alt="" loading="lazy">`
+    : `<div class="result-thumb" style="background:rgba(26,22,36,0.08)"></div>`;
+  return `
+    <article class="result-card">
+      <a class="result-thumb-link" href="${escapeHtml(watchUrl)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">
+        ${thumb}
+      </a>
+      <div class="result-body">
+        <a class="result-title" href="${escapeHtml(watchUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(video.title)}</a>
+        <div class="result-channel">${escapeHtml(video.channelTitle)}</div>
+        <div class="result-meta">
+          ${escapeHtml(formatDate(video.publishedAt))}
+          <span class="result-meta-dot">&middot;</span>
+          ${escapeHtml(formatDuration(video.duration))}
+          <span class="result-meta-dot">&middot;</span>
+          ${escapeHtml(formatViews(video.viewCount))}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function appendCards(videos) {
+  const grid = document.getElementById('results-grid');
+  grid.insertAdjacentHTML('beforeend', videos.map(buildCardHTML).join(''));
+}
+
+function renderApiKeySection() {
+  const hasKey = Boolean(state.apiKey);
+  document.getElementById('api-key-row').hidden = hasKey;
+  document.getElementById('api-key-saved').hidden = !hasKey;
+  if (!hasKey) {
+    document.getElementById('api-key-input').value = '';
+  }
+}
+
+function renderTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    const selected = Number(btn.dataset.years) === state.activeYears;
+    btn.setAttribute('aria-selected', String(selected));
+  });
+}
+
+// Event handling
+document.addEventListener('click', e => {
+  // Tab selection
+  const tabBtn = e.target.closest('.tab-btn[data-years]');
+  if (tabBtn) {
+    state.activeYears = Number(tabBtn.dataset.years);
+    renderTabs();
+    if (state.query && state.apiKey) doSearch(false);
+    return;
+  }
+
+  // Save API key
+  if (e.target.closest('#save-key-btn')) {
+    const val = document.getElementById('api-key-input').value.trim();
+    if (!val) return;
+    state.apiKey = val;
+    saveKey(val);
+    renderApiKeySection();
+    return;
+  }
+
+  // Edit API key
+  if (e.target.closest('#edit-key-link')) {
+    state.apiKey = '';
+    renderApiKeySection();
+    document.getElementById('api-key-input').focus();
+    return;
+  }
+
+  // Load more
+  if (e.target.closest('#load-more-btn')) {
+    if (state.nextPageToken) doSearch(true);
+    return;
+  }
+});
+
+// Allow Enter to confirm edit-key link
+document.getElementById('edit-key-link').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    state.apiKey = '';
+    renderApiKeySection();
+    document.getElementById('api-key-input').focus();
+  }
+});
+
+document.getElementById('search-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) { showStatus('Enter a search term.', 'error'); return; }
+  state.query = q;
+  doSearch(false);
+});
+
+// Boot
+state.apiKey = loadKey();
+renderApiKeySection();
+renderTabs();
+  </script>
+</body>
+</html>
