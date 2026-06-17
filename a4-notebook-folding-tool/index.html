@@ -126,6 +126,23 @@
     color: #bbb;
   }
   .cell .content:focus { box-shadow: 0 0 0 2px #5b8def inset; border-radius: 3px; }
+  .cell .content img { max-width: 100%; height: auto; display: block; margin: 2px 0; }
+  .cell.dragover .content { box-shadow: 0 0 0 2px #5b8def inset; border-radius: 3px; }
+  .cell .add-img {
+    position: absolute;
+    top: 3px; right: 3px;
+    z-index: 3;
+    border: none;
+    background: #111;
+    color: #fff;
+    font: 700 10px/1 Helvetica, Arial, sans-serif;
+    padding: 3px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .cell:hover .add-img, .cell .add-img:focus { opacity: 1; }
   .cell .badge {
     position: absolute;
     top: 3px; left: 3px;
@@ -189,7 +206,7 @@
     .sheet-wrap { page-break-after: always; height: 100vh; }
     .step { border: 1px solid #999; break-inside: avoid; }
     /* Print the typed content; flip the top row so it reads correctly once folded. */
-    .cell .badge { display: none; }
+    .cell .badge, .cell .add-img { display: none; }
     .cell .content:empty::before { content: ""; }
     .cell.flip .content { transform: rotate(180deg); }
   }
@@ -199,8 +216,9 @@
   <header>
     <h1>A4 Mini Notebook Folding Guide</h1>
     <p class="intro">
-      Make an 8-page mini notebook from one sheet of A4. Type content into each
-      page if you like (it saves automatically), then print at
+      Make an 8-page mini notebook from one sheet of A4. Type or add images to
+      each page if you like (hover a page for the <strong>+ image</strong>
+      button, or drag/paste an image in — it all saves automatically), then print at
       <strong>100% scale, A4 landscape</strong> and follow the dashed fold lines
       and the single red cut. The top row prints upside-down on purpose so it
       reads the right way once folded. The numbered steps below show how.
@@ -333,16 +351,75 @@ panels.forEach((p, i) => {
   content.innerHTML = saved[p.page] || ""
   content.addEventListener("input", saveContent)
 
-  cell.append(badge, content)
+  // Add-image button with a hidden file input.
+  const addBtn = document.createElement("button")
+  addBtn.className = "add-img"
+  addBtn.type = "button"
+  addBtn.textContent = "+ image"
+  addBtn.title = "Add an image to this page"
+  const file = document.createElement("input")
+  file.type = "file"
+  file.accept = "image/*"
+  file.style.display = "none"
+  addBtn.addEventListener("click", () => file.click())
+  file.addEventListener("change", () => {
+    if (file.files[0]) insertImage(file.files[0], content)
+    file.value = ""
+  })
+
+  // Drag-and-drop onto the panel.
+  cell.addEventListener("dragover", (e) => { e.preventDefault(); cell.classList.add("dragover") })
+  cell.addEventListener("dragleave", () => cell.classList.remove("dragover"))
+  cell.addEventListener("drop", (e) => {
+    e.preventDefault()
+    cell.classList.remove("dragover")
+    const img = [...(e.dataTransfer.files || [])].find((f) => f.type.startsWith("image/"))
+    if (img) insertImage(img, content)
+  })
+
+  // Paste an image straight into the panel.
+  content.addEventListener("paste", (e) => {
+    const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"))
+    if (item) { e.preventDefault(); insertImage(item.getAsFile(), content) }
+  })
+
+  cell.append(badge, addBtn, file, content)
   overlay.append(cell)
 })
+
+// Downscale an image file and insert it into a panel as an embedded data URL.
+function insertImage(fileObj, content) {
+  const reader = new FileReader()
+  reader.onload = () => {
+    const img = new Image()
+    img.onload = () => {
+      const MAX = 800
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+      const canvas = document.createElement("canvas")
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height)
+      const url = canvas.toDataURL("image/jpeg", 0.85)
+      const el = document.createElement("img")
+      el.src = url
+      content.appendChild(el)
+      saveContent()
+    }
+    img.src = reader.result
+  }
+  reader.readAsDataURL(fileObj)
+}
 
 function saveContent() {
   const data = {}
   overlay.querySelectorAll(".content").forEach((c) => {
     if (c.innerHTML.trim()) data[c.dataset.page] = c.innerHTML
   })
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch (err) {
+    alert("Couldn't save — the content (likely images) is too large for this browser's storage. It will still print, but may not survive a reload.")
+  }
 }
 
 function loadContent() {
