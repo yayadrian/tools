@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>A4 Mini Notebook Folding Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--
+    A4 Mini Notebook Folding Guide
+    Printable A4 (landscape) template for making an 8-page mini notebook
+    from a single sheet of paper. Print at 100% scale, then follow the
+    dashed fold lines and the red cut line. A numbered step sequence
+    below the sheet shows the folding method.
+    Client-side only, no dependencies. Use the Print button (or Ctrl/Cmd+P)
+    and choose A4 landscape with margins set to None/Default and scale 100%.
+  -->
+  <style>*{box-sizing:border-box}
+  :root {
+    --ink: #111;
+    --cut: #d4002a;
+    --muted: #666;
+  }
+  body {
+    font-family: Helvetica, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    color: var(--ink);
+    background: #f4f4f4;
+    line-height: 1.5;
+  }
+  header, .controls, .intro {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  header {
+    padding-top: 1.5rem;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 0.25rem;
+  }
+  .intro {
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+  }
+  button {
+    font-size: 16px;
+    font-family: inherit;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover { background: #333; }
+  label.toggle {
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .swatch { width: 28px; height: 0; border-top-width: 2px; border-top-style: solid; }
+  .swatch.fold { border-top-style: dashed; border-top-color: var(--ink); }
+  .swatch.cut { border-top-color: var(--cut); }
+  .swatch.edge { border-top-style: solid; border-top-color: var(--ink); }
+
+  .sheet-wrap {
+    max-width: 1100px;
+    margin: 0 auto 2rem;
+    padding: 0 1rem;
+  }
+  .sheet {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .sheet svg { display: block; width: 100%; height: auto; }
+
+  .steps {
+    max-width: 1100px;
+    margin: 0 auto 3rem;
+    padding: 0 1rem;
+  }
+  .steps h2 { font-size: 1.2rem; }
+  .step-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .step {
+    background: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    padding: 0.85rem;
+  }
+  .step svg { display: block; width: 100%; height: auto; }
+  .step .num {
+    display: inline-flex;
+    width: 1.6rem; height: 1.6rem;
+    align-items: center; justify-content: center;
+    background: var(--ink); color: #fff;
+    border-radius: 50%;
+    font-weight: 700; font-size: 0.9rem;
+    margin-right: 0.5rem;
+    flex: 0 0 auto;
+  }
+  .step .caption { display: flex; align-items: flex-start; margin-top: 0.6rem; font-size: 0.92rem; }
+
+  footer {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  /* Print: one A4 landscape page for the sheet, steps follow. */
+  @page { size: A4 landscape; margin: 8mm; }
+  @media print {
+    body { background: #fff; }
+    header, .controls, .intro, footer, .no-print { display: none !important; }
+    .sheet-wrap, .steps { max-width: none; margin: 0; padding: 0; }
+    .sheet { border: none; border-radius: 0; box-shadow: none; padding: 0; }
+    .sheet svg { width: 100%; height: 100%; }
+    .sheet-wrap { page-break-after: always; height: 100vh; }
+    .step { border: 1px solid #999; break-inside: avoid; }
+  }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>A4 Mini Notebook Folding Guide</h1>
+    <p class="intro">
+      Make an 8-page mini notebook from one sheet of A4. Print this at
+      <strong>100% scale, A4 landscape</strong>, then follow the dashed fold
+      lines and the single red cut. The numbered steps below show how.
+    </p>
+  </header>
+
+  <div class="controls">
+    <button id="print" type="button">Print template</button>
+    <label class="toggle">
+      <input type="checkbox" id="numbers"> Show panel numbers
+    </label>
+    <div class="legend">
+      <span><span class="swatch edge"></span> Sheet edge</span>
+      <span><span class="swatch fold"></span> Fold line</span>
+      <span><span class="swatch cut"></span> Cut line</span>
+    </div>
+  </div>
+
+  <div class="sheet-wrap">
+    <div class="sheet">
+      <!-- A4 landscape: 297 x 210 mm. 4 columns x 2 rows of equal panels. -->
+      <svg id="map" viewBox="-6 -6 309 222" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="A4 sheet divided into 8 panels with dashed fold lines and a red centre cut">
+        <!-- Sheet edge -->
+        <rect x="0" y="0" width="297" height="210" fill="#fff" stroke="#111" stroke-width="0.6"/>
+
+        <!-- Fold lines (dashed): 3 vertical quarter lines + 1 horizontal centre -->
+        <g stroke="#111" stroke-width="0.6" stroke-dasharray="4 3" fill="none">
+          <line x1="74.25" y1="0" x2="74.25" y2="210"/>
+          <line x1="148.5" y1="0" x2="148.5" y2="210"/>
+          <line x1="222.75" y1="0" x2="222.75" y2="210"/>
+          <line x1="0" y1="105" x2="297" y2="105"/>
+        </g>
+
+        <!-- Cut line (red): horizontal slit along the centre, middle two columns only -->
+        <line x1="74.25" y1="105" x2="222.75" y2="105"
+              stroke="#d4002a" stroke-width="1.4"/>
+        <!-- small scissor ticks at the ends of the cut to make it obvious -->
+        <g stroke="#d4002a" stroke-width="1.1" fill="none">
+          <line x1="74.25" y1="102" x2="74.25" y2="108"/>
+          <line x1="222.75" y1="102" x2="222.75" y2="108"/>
+        </g>
+        <text x="148.5" y="100" text-anchor="middle" font-size="6"
+              fill="#d4002a" font-family="Helvetica, Arial, sans-serif">cut</text>
+
+        <!-- Optional panel numbers (final reading order for the standard fold) -->
+        <g id="panel-numbers" font-family="Helvetica, Arial, sans-serif"
+           font-size="14" fill="#bbb" text-anchor="middle" style="display:none">
+          <!-- top row is printed upside-down in the finished book -->
+          <text x="37.12"  y="58" transform="rotate(180 37.12 52.5)">5</text>
+          <text x="111.37" y="58" transform="rotate(180 111.37 52.5)">4</text>
+          <text x="185.62" y="58" transform="rotate(180 185.62 52.5)">3</text>
+          <text x="259.87" y="58" transform="rotate(180 259.87 52.5)">2</text>
+          <text x="37.12"  y="162">6</text>
+          <text x="111.37" y="162">7</text>
+          <text x="185.62" y="162">8</text>
+          <text x="259.87" y="162">1</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <section class="steps">
+    <h2>How to fold</h2>
+    <div class="step-grid" id="step-grid"></div>
+  </section>
+
+  <footer>
+    Print at 100% scale (no "fit to page"). The cut is a single short slit in
+    the very middle of the sheet — it lets the folded paper open into a cross
+    so it can collapse into a booklet.
+  </footer>
+
+<script type="module">
+const mapNumbers = document.getElementById("panel-numbers")
+const numbersToggle = document.getElementById("numbers")
+numbersToggle.addEventListener("change", () => {
+  mapNumbers.style.display = numbersToggle.checked ? "block" : "none"
+})
+
+document.getElementById("print").addEventListener("click", () => window.print())
+
+// Tiny reusable SVG bits for the step diagrams (60 x 42 viewBox = A4-ish ratio).
+const W = 60, H = 42
+const dash = 'stroke="#111" stroke-width="0.8" stroke-dasharray="3 2" fill="none"'
+const solid = 'stroke="#111" stroke-width="0.8" fill="#fff"'
+const cut = 'stroke="#d4002a" stroke-width="1.4"'
+const arrow = 'stroke="#111" stroke-width="1.1" fill="none" marker-end="url(#ah)"'
+
+const defs = `<defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+  </marker>
+</defs>`
+
+function svg(inner) {
+  return `<svg viewBox="-4 -4 ${W+8} ${H+8}" xmlns="http://www.w3.org/2000/svg">${defs}${inner}</svg>`
+}
+
+const steps = [
+  {
+    // 1. Fold sheet in half lengthways (top to bottom)
+    title: "Fold in half lengthways (top to bottom).",
+    svg: svg(`
+      <rect x="0" y="0" width="${W}" height="${H}" ${solid}/>
+      <line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" ${dash}/>
+      <path d="M ${W+2},8 C ${W+10},${H/2} ${W+10},${H/2} ${W+2},${H-8}" ${arrow}/>
+    `)
+  },
+  {
+    // 2. Fold in half again left to right
+    title: "Fold in half again, left to right.",
+    svg: svg(`
+      <rect x="0" y="${H/4}" width="${W}" height="${H/2}" ${solid}/>
+      <line x1="${W/2}" y1="${H/4}" x2="${W/2}" y2="${3*H/4}" ${dash}/>
+      <path d="M 6,${H/2-12} C ${W/2},${H/2-18} ${W/2},${H/2-18} ${W-6},${H/2-12}" ${arrow}/>
+    `)
+  },
+  {
+    // 3. Fold in half again left to right
+    title: "Fold in half again, left to right. You now have a small rectangle.",
+    svg: svg(`
+      <rect x="${W/4}" y="${H/4}" width="${W/2}" height="${H/2}" ${solid}/>
+      <line x1="${W/2}" y1="${H/4}" x2="${W/2}" y2="${3*H/4}" ${dash}/>
+      <path d="M ${W/4-2},${H/2-9} C ${W/2},${H/2-14} ${W/2},${H/2-14} ${3*W/4+2},${H/2-9}" ${arrow}/>
+    `)
+  },
+  {
+    // 4. Unfold back to step 1, then cut the centre slit
+    title: "Unfold back to the long strip (step 1), then cut the slit in the middle.",
+    svg: svg(`
+      <rect x="0" y="${H/4}" width="${W}" height="${H/2}" ${solid}/>
+      <line x1="${W/4}" y1="${H/4}" x2="${W/4}" y2="${3*H/4}" ${dash}/>
+      <line x1="${W/2}" y1="${H/4}" x2="${W/2}" y2="${3*H/4}" ${dash}/>
+      <line x1="${3*W/4}" y1="${H/4}" x2="${3*W/4}" y2="${3*H/4}" ${dash}/>
+      <line x1="${W/4}" y1="${H/4}" x2="${3*W/4}" y2="${H/4}" ${cut}/>
+      <text x="${W/2}" y="${H/4-3}" text-anchor="middle" font-size="5" fill="#d4002a">cut</text>
+    `)
+  },
+  {
+    // 5. Unfold completely, then refold lengthways
+    title: "Unfold completely, then refold lengthways. The cut becomes a slit in the centre.",
+    svg: svg(`
+      <rect x="0" y="${H/4}" width="${W}" height="${H/2}" ${solid}/>
+      <line x1="${W/4}" y1="${H/2}" x2="${3*W/4}" y2="${H/2}" ${cut}/>
+      <line x1="0" y1="${H/4}" x2="${W}" y2="${H/4}" stroke="#111" stroke-width="0.6" stroke-dasharray="2 2"/>
+    `)
+  },
+  {
+    // 6. Push ends inward so the slit opens into a cross
+    title: "Push both ends inward so the slit opens into a cross / diamond.",
+    svg: svg(`
+      <rect x="${W/4-4}" y="${H/4}" width="${W/2+8}" height="${H/2}" ${solid}/>
+      <line x1="${W/2}" y1="${H/2-7}" x2="${W/2}" y2="${H/2+7}" ${cut}/>
+      <line x1="${W/2-7}" y1="${H/2}" x2="${W/2+7}" y2="${H/2}" stroke="#d4002a" stroke-width="0.8" stroke-dasharray="2 1.5"/>
+      <path d="M 2,${H/2} L ${W/4-6},${H/2}" ${arrow}/>
+      <path d="M ${W-2},${H/2} L ${3*W/4+6},${H/2}" ${arrow}/>
+    `)
+  },
+  {
+    // 7. Collapse into a booklet and crease the spine
+    title: "Collapse the pages flat into a booklet and crease the spine.",
+    svg: svg(`
+      <rect x="${W/2-14}" y="6" width="14" height="${H-12}" ${solid}/>
+      <rect x="${W/2}" y="6" width="14" height="${H-12}" ${solid}/>
+      <line x1="${W/2}" y1="6" x2="${W/2}" y2="${H-6}" stroke="#111" stroke-width="1.4"/>
+      <line x1="${W/2-10}" y1="13" x2="${W/2-4}" y2="13" stroke="#bbb" stroke-width="0.6"/>
+      <line x1="${W/2-10}" y1="18" x2="${W/2-4}" y2="18" stroke="#bbb" stroke-width="0.6"/>
+      <line x1="${W/2+4}" y1="13" x2="${W/2+10}" y2="13" stroke="#bbb" stroke-width="0.6"/>
+      <line x1="${W/2+4}" y1="18" x2="${W/2+10}" y2="18" stroke="#bbb" stroke-width="0.6"/>
+    `)
+  }
+]
+
+const grid = document.getElementById("step-grid")
+grid.innerHTML = steps.map((s, i) => `
+  <div class="step">
+    ${s.svg}
+    <p class="caption"><span class="num">${i + 1}</span><span>${s.title}</span></p>
+  </div>
+`).join("")
+</script>
+</body>
+</html>
