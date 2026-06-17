@@ -94,6 +94,52 @@
   }
   .sheet svg { display: block; width: 100%; height: auto; }
 
+  /* Editable content overlay, aligned to the sheet inside the viewBox.
+     viewBox is -6 -6 309 222; the 297x210 sheet sits 6 units in on each side. */
+  .sheet-inner { position: relative; }
+  .overlay {
+    position: absolute;
+    left: 1.9417%;   /* 6 / 309 */
+    top: 2.7027%;    /* 6 / 222 */
+    width: 96.117%;  /* 297 / 309 */
+    height: 94.595%; /* 210 / 222 */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+  .overlay.hidden { display: none; }
+  .cell { position: relative; overflow: hidden; }
+  .cell .content {
+    position: absolute;
+    inset: 7%;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.35;
+    color: #111;
+    outline: none;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .cell .content:empty::before {
+    content: attr(data-placeholder);
+    color: #bbb;
+  }
+  .cell .content:focus { box-shadow: 0 0 0 2px #5b8def inset; border-radius: 3px; }
+  .cell .badge {
+    position: absolute;
+    top: 3px; left: 3px;
+    font: 700 10px/1 Helvetica, Arial, sans-serif;
+    color: #fff; background: #111;
+    padding: 2px 5px; border-radius: 3px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .cell .badge .role { font-weight: 400; opacity: 0.85; }
+  /* Top-row pages are upside-down in the finished book. */
+  .overlay.preview .cell.flip .content { transform: rotate(180deg); }
+  .overlay.preview .cell.flip .badge { top: auto; bottom: 3px; left: auto; right: 3px; }
+
   .steps {
     max-width: 1100px;
     margin: 0 auto 3rem;
@@ -142,6 +188,10 @@
     .sheet svg { width: 100%; height: 100%; }
     .sheet-wrap { page-break-after: always; height: 100vh; }
     .step { border: 1px solid #999; break-inside: avoid; }
+    /* Print the typed content; flip the top row so it reads correctly once folded. */
+    .cell .badge { display: none; }
+    .cell .content:empty::before { content: ""; }
+    .cell.flip .content { transform: rotate(180deg); }
   }
   </style>
 </head>
@@ -149,17 +199,27 @@
   <header>
     <h1>A4 Mini Notebook Folding Guide</h1>
     <p class="intro">
-      Make an 8-page mini notebook from one sheet of A4. Print this at
-      <strong>100% scale, A4 landscape</strong>, then follow the dashed fold
-      lines and the single red cut. The numbered steps below show how.
+      Make an 8-page mini notebook from one sheet of A4. Type content into each
+      page if you like (it saves automatically), then print at
+      <strong>100% scale, A4 landscape</strong> and follow the dashed fold lines
+      and the single red cut. The top row prints upside-down on purpose so it
+      reads the right way once folded. The numbered steps below show how.
     </p>
   </header>
 
   <div class="controls">
     <button id="print" type="button">Print template</button>
     <label class="toggle">
+      <input type="checkbox" id="edit" checked> Edit content
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="preview"> Preview folded orientation
+    </label>
+    <label class="toggle">
       <input type="checkbox" id="numbers"> Show panel numbers
     </label>
+    <button id="clear" type="button" class="no-print"
+            style="background:#fff;color:#111">Clear content</button>
     <div class="legend">
       <span><span class="swatch edge"></span> Sheet edge</span>
       <span><span class="swatch fold"></span> Fold line</span>
@@ -169,6 +229,7 @@
 
   <div class="sheet-wrap">
     <div class="sheet">
+     <div class="sheet-inner">
       <!-- A4 landscape: 297 x 210 mm. 4 columns x 2 rows of equal panels. -->
       <svg id="map" viewBox="-6 -6 309 222" xmlns="http://www.w3.org/2000/svg" role="img"
            aria-label="A4 sheet divided into 8 panels with dashed fold lines and a red centre cut">
@@ -208,6 +269,9 @@
           <text x="259.87" y="162">1</text>
         </g>
       </svg>
+      <!-- Editable text overlay, one box per panel; populated by JS. -->
+      <div class="overlay" id="overlay" aria-label="Editable notebook panels"></div>
+     </div>
     </div>
   </div>
 
@@ -230,6 +294,76 @@ numbersToggle.addEventListener("change", () => {
 })
 
 document.getElementById("print").addEventListener("click", () => window.print())
+
+// --- Editable content overlay ----------------------------------------------
+// Panels in row-major order: top row (left->right), then bottom row.
+// Standard 8-page imposition: the top row is printed upside-down, so those
+// pages are flipped 180 degrees when printing / previewing the folded book.
+const overlay = document.getElementById("overlay")
+const STORAGE_KEY = "a4-notebook-content"
+
+const panels = [
+  { page: 5, flip: true,  role: "" },
+  { page: 4, flip: true,  role: "" },
+  { page: 3, flip: true,  role: "" },
+  { page: 2, flip: true,  role: "" },
+  { page: 6, flip: false, role: "" },
+  { page: 7, flip: false, role: "" },
+  { page: 8, flip: false, role: "back cover" },
+  { page: 1, flip: false, role: "front cover" }
+]
+
+const saved = loadContent()
+
+panels.forEach((p, i) => {
+  const cell = document.createElement("div")
+  cell.className = "cell" + (p.flip ? " flip" : "")
+
+  const badge = document.createElement("span")
+  badge.className = "badge"
+  badge.innerHTML = `Page ${p.page}` + (p.role ? ` <span class="role">${p.role}</span>` : "")
+
+  const content = document.createElement("div")
+  content.className = "content"
+  content.contentEditable = "true"
+  content.dataset.page = String(p.page)
+  content.dataset.placeholder = p.role
+    ? p.role.charAt(0).toUpperCase() + p.role.slice(1)
+    : "Page " + p.page
+  content.innerHTML = saved[p.page] || ""
+  content.addEventListener("input", saveContent)
+
+  cell.append(badge, content)
+  overlay.append(cell)
+})
+
+function saveContent() {
+  const data = {}
+  overlay.querySelectorAll(".content").forEach((c) => {
+    if (c.innerHTML.trim()) data[c.dataset.page] = c.innerHTML
+  })
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+function loadContent() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {} }
+  catch { return {} }
+}
+
+const editToggle = document.getElementById("edit")
+const previewToggle = document.getElementById("preview")
+editToggle.addEventListener("change", () => {
+  overlay.classList.toggle("hidden", !editToggle.checked)
+  previewToggle.disabled = !editToggle.checked
+})
+previewToggle.addEventListener("change", () => {
+  overlay.classList.toggle("preview", previewToggle.checked)
+})
+document.getElementById("clear").addEventListener("click", () => {
+  if (!confirm("Clear all content from every page?")) return
+  overlay.querySelectorAll(".content").forEach((c) => { c.innerHTML = "" })
+  localStorage.removeItem(STORAGE_KEY)
+})
 
 // Tiny reusable SVG bits for the step diagrams (60 x 42 viewBox = A4-ish ratio).
 const W = 60, H = 42
