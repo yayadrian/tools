@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calculate six equal repayments for a UK employer BEV loan car, including salary-sacrifice savings and company-car BIK tax.">
+  <title>UK BEV Loan Car Repayment Calculator</title>
+  <style>*{box-sizing:border-box}</style>
+  <style>
+    :root {
+      --ink: #17231f;
+      --muted: #64716c;
+      --paper: #f5f3ed;
+      --card: #fffdf8;
+      --line: #d9ddd5;
+      --green: #0c6b4f;
+      --green-dark: #07513c;
+      --green-soft: #dceee6;
+      --lime: #c9f45b;
+      --cream: #fff8dc;
+      --orange: #df6c3a;
+      --shadow: 0 18px 55px rgba(23, 35, 31, 0.11);
+    }
+
+    html {
+      color-scheme: light;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 85% 5%, rgba(201, 244, 91, 0.32), transparent 26rem),
+        linear-gradient(180deg, #eef5ec 0, var(--paper) 32rem);
+      font-family: Helvetica, Arial, system-ui, sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 34px 0 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      color: var(--green-dark);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 11px;
+      color: var(--lime);
+      background: var(--green-dark);
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+      gap: 44px;
+      align-items: end;
+      padding: 38px 0 46px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin-bottom: 20px;
+      font-size: clamp(2.7rem, 6.5vw, 5.7rem);
+      font-weight: 700;
+      letter-spacing: -0.065em;
+      line-height: 0.92;
+    }
+
+    .hero-accent {
+      color: var(--green);
+    }
+
+    .lede {
+      max-width: 680px;
+      margin-bottom: 0;
+      color: #4c5a55;
+      font-size: clamp(1rem, 1.6vw, 1.18rem);
+      line-height: 1.65;
+    }
+
+    .hero-note {
+      position: relative;
+      margin: 0 0 8px;
+      padding: 22px 24px;
+      border: 1px solid rgba(12, 107, 79, 0.14);
+      border-radius: 20px;
+      background: rgba(255, 253, 248, 0.72);
+      box-shadow: 0 10px 30px rgba(23, 35, 31, 0.06);
+      color: #46534e;
+      font-size: 0.93rem;
+    }
+
+    .hero-note strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(310px, 0.8fr) minmax(440px, 1.2fr);
+      gap: 22px;
+      align-items: start;
+      padding-bottom: 36px;
+    }
+
+    .panel {
+      border: 1px solid rgba(23, 35, 31, 0.1);
+      border-radius: 24px;
+      background: rgba(255, 253, 248, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .input-panel {
+      padding: 26px;
+    }
+
+    .panel-kicker {
+      margin-bottom: 7px;
+      color: var(--green);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+      font-size: 1.55rem;
+      letter-spacing: -0.035em;
+      line-height: 1.15;
+    }
+
+    .panel-copy {
+      margin-bottom: 24px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .fields {
+      display: grid;
+      gap: 17px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label,
+    .label {
+      color: #394740;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-prefix,
+    .input-suffix {
+      position: absolute;
+      top: 50%;
+      color: var(--muted);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .input-prefix {
+      left: 14px;
+    }
+
+    .input-suffix {
+      right: 14px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 49px;
+      border: 1px solid #cbd1ca;
+      border-radius: 12px;
+      outline: none;
+      color: var(--ink);
+      background: #fffefa;
+      font-size: 16px;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+
+    input {
+      padding: 12px 14px;
+    }
+
+    select {
+      padding: 12px 36px 12px 14px;
+    }
+
+    .has-prefix {
+      padding-left: 30px;
+    }
+
+    .has-suffix {
+      padding-right: 34px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(12, 107, 79, 0.12);
+    }
+
+    input:invalid:not(:focus):not(:placeholder-shown) {
+      border-color: var(--orange);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
+
+    .duration {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 13px 14px;
+      border: 1px dashed #c7cec6;
+      border-radius: 12px;
+      background: #f5f5ef;
+    }
+
+    .duration span {
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+
+    .duration strong {
+      font-size: 0.9rem;
+    }
+
+    .results-panel {
+      overflow: hidden;
+    }
+
+    .result-hero {
+      position: relative;
+      overflow: hidden;
+      padding: 31px;
+      color: #fff;
+      background: var(--green-dark);
+    }
+
+    .result-hero::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      right: -95px;
+      top: -120px;
+      border: 54px solid rgba(201, 244, 91, 0.13);
+      border-radius: 50%;
+    }
+
+    .result-eyebrow {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 13px;
+      color: var(--lime);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .amount {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 8px;
+      font-size: clamp(3.4rem, 8vw, 6.2rem);
+      font-weight: 700;
+      letter-spacing: -0.07em;
+      line-height: 0.9;
+    }
+
+    .per-month {
+      font-size: 0.24em;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      opacity: 0.75;
+    }
+
+    .neutral-copy {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 25px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.93rem;
+    }
+
+    .primary-stats {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid rgba(255, 255, 255, 0.17);
+    }
+
+    .primary-stat {
+      padding-top: 18px;
+    }
+
+    .primary-stat + .primary-stat {
+      padding-left: 22px;
+      border-left: 1px solid rgba(255, 255, 255, 0.17);
+    }
+
+    .primary-stat span {
+      display: block;
+      margin-bottom: 4px;
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 0.75rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .primary-stat strong {
+      font-size: 1.24rem;
+    }
+
+    .results-body {
+      padding: 27px 31px 31px;
+    }
+
+    .vehicle-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 21px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .vehicle-line span {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .vehicle-line strong {
+      text-align: right;
+    }
+
+    .breakdown {
+      display: grid;
+      gap: 11px;
+      margin: 0;
+    }
+
+    .breakdown-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 25px;
+    }
+
+    .breakdown-row dt,
+    .breakdown-row dd {
+      margin: 0;
+    }
+
+    .breakdown-row dt {
+      color: #52605a;
+      font-size: 0.9rem;
+    }
+
+    .breakdown-row dd {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .breakdown-row.saving dd {
+      color: var(--green);
+    }
+
+    .breakdown-rule {
+      height: 1px;
+      margin: 5px 0;
+      background: var(--line);
+    }
+
+    .breakdown-row.total {
+      padding: 13px 15px;
+      border-radius: 12px;
+      background: var(--green-soft);
+    }
+
+    .breakdown-row.total dt,
+    .breakdown-row.total dd {
+      color: var(--green-dark);
+      font-weight: 800;
+    }
+
+    .crossing-note {
+      display: none;
+      margin: 22px 0 0;
+      padding: 14px 15px;
+      border-left: 4px solid var(--orange);
+      border-radius: 7px 12px 12px 7px;
+      color: #6d3b25;
+      background: #fff1e8;
+      font-size: 0.84rem;
+    }
+
+    .crossing-note.is-visible {
+      display: block;
+    }
+
+    .error {
+      display: none;
+      margin: 0;
+      padding: 17px;
+      border-radius: 12px;
+      color: #7b2c17;
+      background: #fff0e8;
+      font-size: 0.9rem;
+    }
+
+    .error.is-visible {
+      display: block;
+    }
+
+    .details-panel {
+      margin-bottom: 36px;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    details > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 26px;
+      cursor: pointer;
+      list-style: none;
+      font-weight: 800;
+    }
+
+    details > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details > summary::after {
+      content: "+";
+      display: grid;
+      width: 29px;
+      height: 29px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--green-dark);
+      background: var(--green-soft);
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    details[open] > summary::after {
+      content: "−";
+    }
+
+    .details-content {
+      padding: 0 26px 26px;
+      border-top: 1px solid var(--line);
+    }
+
+    .rate-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0 18px;
+    }
+
+    .rate-pill {
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: var(--green-dark);
+      background: var(--green-soft);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th,
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.71rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    td:last-child,
+    th:last-child {
+      text-align: right;
+    }
+
+    .fixed-payment {
+      color: var(--green-dark);
+      font-weight: 800;
+    }
+
+    .assumptions {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
+      margin-bottom: 44px;
+    }
+
+    .info-card {
+      padding: 24px 26px;
+      border: 1px solid rgba(23, 35, 31, 0.1);
+      border-radius: 20px;
+      background: rgba(255, 253, 248, 0.72);
+    }
+
+    .info-card h3 {
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .info-card p,
+    .info-card ul {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.65;
+    }
+
+    .info-card ul {
+      columns: 2;
+      padding-left: 18px;
+    }
+
+    footer {
+      padding: 21px 0 34px;
+      border-top: 1px solid rgba(23, 35, 31, 0.12);
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 840px) {
+      .hero,
+      .layout,
+      .assumptions {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        gap: 25px;
+      }
+
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .results-panel {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .shell {
+        width: min(100% - 20px, 1180px);
+      }
+
+      header {
+        padding-top: 20px;
+      }
+
+      .hero {
+        padding-top: 22px;
+      }
+
+      h1 {
+        font-size: clamp(2.55rem, 14vw, 4rem);
+      }
+
+      .input-panel,
+      .result-hero,
+      .results-body {
+        padding: 21px;
+      }
+
+      .field-row,
+      .primary-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .primary-stat + .primary-stat {
+        margin-top: 15px;
+        padding: 15px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.17);
+        border-left: 0;
+      }
+
+      .amount {
+        font-size: 3.35rem;
+      }
+
+      .info-card ul {
+        columns: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">↯</span>
+      UK electric car finance
+    </div>
+  </header>
+
+  <main>
+    <section class="hero shell" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">BEV loan car <span class="hero-accent">repayment calculator.</span></h1>
+        <p class="lede">Work out the six equal monthly payments the person using the car should make, covering your real salary-sacrifice cost and company-car tax — no more, no less.</p>
+      </div>
+      <p class="hero-note"><strong>Why not repay the gross loan rate?</strong>Salary sacrifice reduces your Income Tax and employee National Insurance. This calculator starts with the take-home-pay cost, then adds the BIK tax you remain liable for.</p>
+    </section>
+
+    <section class="layout shell" aria-label="Calculator">
+      <form class="panel input-panel" id="calculator" novalidate>
+        <p class="panel-kicker">Your loan details</p>
+        <h2>Tell us about the car</h2>
+        <p class="panel-copy">Results update as you type. The loan duration is fixed at six months.</p>
+
+        <div class="fields">
+          <div class="field">
+            <label for="vehicle-name">Vehicle name</label>
+            <input id="vehicle-name" name="vehicle-name" type="text" value="Example electric car" autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label for="p11d-value">Vehicle value including mandatory options</label>
+            <div class="input-wrap">
+              <span class="input-prefix" aria-hidden="true">£</span>
+              <input class="has-prefix" id="p11d-value" name="p11d-value" type="number" min="0" step="0.01" value="76765" inputmode="decimal" required>
+            </div>
+            <span class="hint">The vehicle’s P11D value used for company-car tax.</span>
+          </div>
+
+          <div class="field">
+            <label for="gross-rate">Gross monthly loan rate</label>
+            <div class="input-wrap">
+              <span class="input-prefix" aria-hidden="true">£</span>
+              <input class="has-prefix" id="gross-rate" name="gross-rate" type="number" min="0" step="0.01" value="549.99" inputmode="decimal" required>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="tax-rate">Marginal Income Tax rate</label>
+              <select id="tax-rate" name="tax-rate">
+                <option value="0.20">20%</option>
+                <option value="0.40" selected>40%</option>
+                <option value="0.45">45%</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ni-rate">Employee NI rate</label>
+              <div class="input-wrap">
+                <input class="has-suffix" id="ni-rate" name="ni-rate" type="number" min="0" max="100" step="0.1" value="2" inputmode="decimal" required>
+                <span class="input-suffix" aria-hidden="true">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="start-date">Loan start date</label>
+            <input id="start-date" name="start-date" type="date" min="2025-04-06" max="2029-10-06" required>
+            <span class="hint">Available EV BIK rates cover 6 April 2025 to 5 April 2030.</span>
+          </div>
+
+          <div class="duration" aria-label="Loan duration">
+            <span>Loan duration</span>
+            <strong>6 months · 6 payments</strong>
+          </div>
+        </div>
+      </form>
+
+      <section class="panel results-panel" aria-live="polite" aria-atomic="true">
+        <div id="results">
+          <div class="result-hero">
+            <div class="result-eyebrow">Amount the car user should repay you</div>
+            <div class="amount"><span id="monthly-repayment">£0.00</span><span class="per-month"> / month</span></div>
+            <p class="neutral-copy">This estimated amount leaves you financially neutral.</p>
+            <div class="primary-stats">
+              <div class="primary-stat">
+                <span>Number of payments</span>
+                <strong>6 equal payments</strong>
+              </div>
+              <div class="primary-stat">
+                <span>Total to be repaid</span>
+                <strong id="total-repayment">£0.00</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="results-body">
+            <p class="panel-kicker">Average monthly breakdown</p>
+            <div class="vehicle-line">
+              <span>Estimate for</span>
+              <strong id="result-vehicle">Your electric car</strong>
+            </div>
+
+            <dl class="breakdown" aria-label="Monthly cost breakdown">
+              <div class="breakdown-row">
+                <dt>Gross loan rate</dt>
+                <dd id="gross-output">£0.00</dd>
+              </div>
+              <div class="breakdown-row saving">
+                <dt>Income Tax saved</dt>
+                <dd id="tax-saving-output">−£0.00</dd>
+              </div>
+              <div class="breakdown-row saving">
+                <dt>National Insurance saved</dt>
+                <dd id="ni-saving-output">−£0.00</dd>
+              </div>
+              <div class="breakdown-rule" aria-hidden="true"></div>
+              <div class="breakdown-row">
+                <dt>Actual take-home-pay cost</dt>
+                <dd id="take-home-output">£0.00</dd>
+              </div>
+              <div class="breakdown-row">
+                <dt>BIK tax included <span class="hint">(monthly average)</span></dt>
+                <dd id="bik-output">+£0.00</dd>
+              </div>
+              <div class="breakdown-rule" aria-hidden="true"></div>
+              <div class="breakdown-row">
+                <dt>Effective employee cost</dt>
+                <dd id="effective-output">£0.00</dd>
+              </div>
+              <div class="breakdown-row total">
+                <dt>Required repayment from the car user</dt>
+                <dd id="required-output">£0.00</dd>
+              </div>
+            </dl>
+
+            <p class="crossing-note" id="crossing-note"></p>
+          </div>
+        </div>
+        <div class="results-body">
+          <p class="error" id="error" role="alert"></p>
+        </div>
+      </section>
+    </section>
+
+    <section class="shell">
+      <details class="panel details-panel">
+        <summary>See the month-by-month calculation</summary>
+        <div class="details-content">
+          <div class="rate-summary" id="rate-summary"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Payment</th>
+                  <th scope="col">Loan period</th>
+                  <th scope="col">BIK rate applied</th>
+                  <th scope="col">Underlying BIK tax</th>
+                  <th scope="col">Equal repayment</th>
+                </tr>
+              </thead>
+              <tbody id="monthly-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <div class="assumptions">
+        <article class="info-card">
+          <h3>How reimbursements and BIK interact</h3>
+          <p>The car user’s payment to you is a personal reimbursement. It is not subtracted from any tax calculation and does not reduce the vehicle’s P11D value, taxable BIK value or your BIK tax. BIK is subject to Income Tax, but not employee National Insurance. Even if payroll collects the BIK tax later through your tax code, it is included in this repayment from the beginning.</p>
+        </article>
+        <article class="info-card">
+          <h3>Not included</h3>
+          <ul>
+            <li>Charging</li>
+            <li>Insurance</li>
+            <li>Servicing</li>
+            <li>Tyres</li>
+            <li>Delivery</li>
+            <li>Changeover fees</li>
+            <li>Damage</li>
+            <li>Excess mileage</li>
+            <li>Pension effects</li>
+            <li>Student loans</li>
+            <li>Allowance taper</li>
+            <li>Child Benefit</li>
+            <li>Employer NI</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">This is an estimate based on your selected marginal Income Tax and employee NI rates. Actual payroll and BIK collection dates may differ, but this does not change the total estimated amount the car user should repay.</div>
+  </footer>
+
+  <script type="module">
+const taxYearRates = [
+  { name: "2025–26", start: "2025-04-06", end: "2026-04-05", rate: 0.03 },
+  { name: "2026–27", start: "2026-04-06", end: "2027-04-05", rate: 0.04 },
+  { name: "2027–28", start: "2027-04-06", end: "2028-04-05", rate: 0.05 },
+  { name: "2028–29", start: "2028-04-06", end: "2029-04-05", rate: 0.07 },
+  { name: "2029–30", start: "2029-04-06", end: "2030-04-05", rate: 0.09 }
+];
+
+const elements = {
+  form: document.querySelector("#calculator"),
+  vehicleName: document.querySelector("#vehicle-name"),
+  p11dValue: document.querySelector("#p11d-value"),
+  grossRate: document.querySelector("#gross-rate"),
+  taxRate: document.querySelector("#tax-rate"),
+  niRate: document.querySelector("#ni-rate"),
+  startDate: document.querySelector("#start-date"),
+  results: document.querySelector("#results"),
+  error: document.querySelector("#error"),
+  monthlyRepayment: document.querySelector("#monthly-repayment"),
+  totalRepayment: document.querySelector("#total-repayment"),
+  resultVehicle: document.querySelector("#result-vehicle"),
+  grossOutput: document.querySelector("#gross-output"),
+  taxSavingOutput: document.querySelector("#tax-saving-output"),
+  niSavingOutput: document.querySelector("#ni-saving-output"),
+  takeHomeOutput: document.querySelector("#take-home-output"),
+  bikOutput: document.querySelector("#bik-output"),
+  effectiveOutput: document.querySelector("#effective-output"),
+  requiredOutput: document.querySelector("#required-output"),
+  crossingNote: document.querySelector("#crossing-note"),
+  rateSummary: document.querySelector("#rate-summary"),
+  monthlyRows: document.querySelector("#monthly-rows")
+};
+
+const currency = new Intl.NumberFormat("en-GB", {
+  style: "currency",
+  currency: "GBP",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+const shortDate = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC"
+});
+
+function parseDate(value) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function toDateInputValue(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function addMonths(date, months) {
+  const result = new Date(date);
+  const originalDay = result.getUTCDate();
+  result.setUTCDate(1);
+  result.setUTCMonth(result.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)).getUTCDate();
+  result.setUTCDate(Math.min(originalDay, lastDay));
+  return result;
+}
+
+function addDays(date, days) {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+}
+
+function rateForDate(date) {
+  const value = toDateInputValue(date);
+  return taxYearRates.find((taxYear) => value >= taxYear.start && value <= taxYear.end);
+}
+
+function countRates(start, end) {
+  const counts = new Map();
+  for (let day = new Date(start); day <= end; day = addDays(day, 1)) {
+    const taxYear = rateForDate(day);
+    if (!taxYear) {
+      throw new Error("The selected loan includes dates outside the available EV BIK rate range.");
+    }
+    const current = counts.get(taxYear.name) || { ...taxYear, days: 0 };
+    current.days += 1;
+    counts.set(taxYear.name, current);
+  }
+  return [...counts.values()];
+}
+
+function calculateMonthlyBik(p11dValue, taxRate, periodStart, periodEnd) {
+  const rates = countRates(periodStart, periodEnd);
+  const totalDays = rates.reduce((total, item) => total + item.days, 0);
+  const weightedRate = rates.reduce((total, item) => total + item.rate * item.days, 0) / totalDays;
+  return {
+    amount: p11dValue * weightedRate * taxRate / 12,
+    rates,
+    weightedRate
+  };
+}
+
+function roundToPence(value) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function formatCurrency(value) {
+  return currency.format(roundToPence(value));
+}
+
+function formatRate(rate) {
+  return `${(rate * 100).toFixed(0)}%`;
+}
+
+function setError(message) {
+  elements.results.hidden = true;
+  elements.error.textContent = message;
+  elements.error.classList.add("is-visible");
+}
+
+function clearError() {
+  elements.results.hidden = false;
+  elements.error.textContent = "";
+  elements.error.classList.remove("is-visible");
+}
+
+function calculate() {
+  const hasAllAmounts = elements.p11dValue.value !== ""
+    && elements.grossRate.value !== ""
+    && elements.niRate.value !== "";
+  const p11dValue = Number(elements.p11dValue.value);
+  const grossRate = Number(elements.grossRate.value);
+  const taxRate = Number(elements.taxRate.value);
+  const niRate = Number(elements.niRate.value) / 100;
+  const startValue = elements.startDate.value;
+
+  if (!startValue || !hasAllAmounts || !Number.isFinite(p11dValue) || !Number.isFinite(grossRate) || !Number.isFinite(niRate)) {
+    setError("Enter the vehicle value, monthly loan rate, NI rate and loan start date to see your estimate.");
+    return;
+  }
+  if (p11dValue < 0 || grossRate < 0 || niRate < 0 || niRate > 1) {
+    setError("Enter positive amounts and an employee NI rate between 0% and 100%.");
+    return;
+  }
+
+  const start = parseDate(startValue);
+  const loanEnd = addDays(addMonths(start, 6), -1);
+  if (!rateForDate(start) || !rateForDate(loanEnd)) {
+    setError("Choose a six-month loan fully within 6 April 2025 to 5 April 2030.");
+    return;
+  }
+
+  try {
+    const incomeTaxSaving = grossRate * taxRate;
+    const niSaving = grossRate * niRate;
+    const takeHomeCost = grossRate - incomeTaxSaving - niSaving;
+    const months = [];
+
+    for (let index = 0; index < 6; index += 1) {
+      const periodStart = addMonths(start, index);
+      const periodEnd = addDays(addMonths(start, index + 1), -1);
+      const bik = calculateMonthlyBik(p11dValue, taxRate, periodStart, periodEnd);
+      months.push({ periodStart, periodEnd, ...bik });
+    }
+
+    const totalBik = months.reduce((total, month) => total + month.amount, 0);
+    const averageBik = totalBik / 6;
+    const effectiveCost = takeHomeCost + averageBik;
+    const fixedRepayment = roundToPence(effectiveCost);
+    const totalRepayment = fixedRepayment * 6;
+    const overallRates = countRates(start, loanEnd);
+
+    clearError();
+    elements.monthlyRepayment.textContent = formatCurrency(fixedRepayment);
+    elements.totalRepayment.textContent = formatCurrency(totalRepayment);
+    elements.resultVehicle.textContent = elements.vehicleName.value.trim() || "Your electric car";
+    elements.grossOutput.textContent = formatCurrency(grossRate);
+    elements.taxSavingOutput.textContent = `−${formatCurrency(incomeTaxSaving)}`;
+    elements.niSavingOutput.textContent = `−${formatCurrency(niSaving)}`;
+    elements.takeHomeOutput.textContent = formatCurrency(takeHomeCost);
+    elements.bikOutput.textContent = `+${formatCurrency(averageBik)}`;
+    elements.effectiveOutput.textContent = formatCurrency(effectiveCost);
+    elements.requiredOutput.textContent = formatCurrency(fixedRepayment);
+
+    const crossesTaxYear = overallRates.length > 1;
+    elements.crossingNote.classList.toggle("is-visible", crossesTaxYear);
+    elements.crossingNote.textContent = crossesTaxYear
+      ? `This loan crosses 6 April. The BIK calculation uses ${overallRates.map((item) => `${formatRate(item.rate)} for ${item.days} days`).join(" and ")}, then spreads the complete cost over six equal payments.`
+      : "";
+
+    elements.rateSummary.innerHTML = overallRates.map((item) =>
+      `<span class="rate-pill">${item.name}: ${formatRate(item.rate)} · ${item.days} days</span>`
+    ).join("");
+
+    elements.monthlyRows.innerHTML = months.map((month, index) => {
+      const rateLabel = month.rates.map((item) => `${item.days}d at ${formatRate(item.rate)}`).join(" · ");
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${shortDate.format(month.periodStart)} – ${shortDate.format(month.periodEnd)}</td>
+          <td>${rateLabel}</td>
+          <td>${formatCurrency(month.amount)}</td>
+          <td class="fixed-payment">${formatCurrency(fixedRepayment)}</td>
+        </tr>`;
+    }).join("");
+  } catch (error) {
+    setError(error.message);
+  }
+}
+
+function setDefaultDate() {
+  const today = new Date();
+  const todayUtc = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  const earliest = parseDate("2025-04-06");
+  const latest = parseDate("2029-10-06");
+  const safeDate = todayUtc < earliest ? earliest : todayUtc > latest ? latest : todayUtc;
+  elements.startDate.value = toDateInputValue(safeDate);
+}
+
+elements.taxRate.addEventListener("change", () => {
+  elements.niRate.value = elements.taxRate.value === "0.20" ? "8" : "2";
+  calculate();
+});
+
+elements.form.addEventListener("input", calculate);
+elements.form.addEventListener("submit", (event) => event.preventDefault());
+
+setDefaultDate();
+calculate();
+  </script>
+</body>
+</html>
