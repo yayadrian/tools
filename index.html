@@ -2,45 +2,300 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tools</title>
-  <style>
+  <meta name="description" content="A collection of small, focused tools and utilities.">
+  <style>*{box-sizing:border-box}
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #1b1f24;
+      --muted: #5b6470;
+      --line: #e2e6eb;
+      --accent: #2563eb;
+      --icon-bg: #eef2f7;
+      --kind-bg: #eef2f7;
+      --kind-text: #5b6470;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1216;
+        --card: #181c22;
+        --text: #e8ebef;
+        --muted: #9aa4b1;
+        --line: #2a313b;
+        --accent: #7fa8ff;
+        --icon-bg: #232932;
+        --kind-bg: #232932;
+        --kind-text: #9aa4b1;
+      }
+    }
     body {
-      font-family: Arial, sans-serif;
-      margin: 2rem auto;
-      max-width: 800px;
-      line-height: 1.6;
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      font-family: Helvetica, "Helvetica Neue", Arial, system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--bg);
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
     }
     h1 {
-      border-bottom: 2px solid #333;
-      padding-bottom: .5rem;
+      font-size: 2rem;
+      margin: 0 0 .25rem;
+      letter-spacing: -.02em;
+    }
+    .intro {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+    }
+    .tools {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: .75rem;
+    }
+    .tool {
+      display: flex;
+      gap: .85rem;
+      align-items: flex-start;
+      height: 100%;
+      padding: .9rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      color: inherit;
+      text-decoration: none;
+      transition: border-color .15s, transform .15s;
+    }
+    .tool:hover,
+    .tool:focus-visible {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    .tool:focus-visible {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+    .tool-icon {
+      flex: 0 0 auto;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: grid;
+      place-items: center;
+      font-size: 1.4rem;
+      line-height: 1;
+      border-radius: 10px;
+      background: var(--icon-bg);
+    }
+    .tool-body {
+      display: flex;
+      flex-direction: column;
+      gap: .15rem;
+      min-width: 0;
+    }
+    .tool-name {
+      font-weight: 600;
+    }
+    .tool-kind {
+      display: inline-block;
+      margin-left: .35rem;
+      padding: 0 .4rem;
+      font-size: .7rem;
+      font-weight: 600;
+      line-height: 1.5;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      vertical-align: middle;
+      border-radius: 999px;
+      color: var(--kind-text);
+      background: var(--kind-bg);
+    }
+    .tool-desc {
+      font-size: .92rem;
+      color: var(--muted);
+    }
+    footer {
+      margin-top: 2rem;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    footer a {
+      color: var(--accent);
     }
   </style>
 </head>
 <body>
-  <p>Welcome to the tools monorepo. Browse the available utilities below.</p>
+  <main>
+    <h1>Tools</h1>
+    <p class="intro">Small, single-purpose utilities. Web tools open in the browser; CLI tools link to their source on GitHub.</p>
 
-  <h1>TOOLS</h1>
+    <!-- TOOLS-LIST START -->
+    <ul class="tools">
+    <li>
+      <a class="tool" href="central-circle/">
+        <span class="tool-icon" aria-hidden="true">🎯</span>
+        <span class="tool-body">
+          <span class="tool-name">Central Circle <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Click a spot on the map to draw concentric distance rings around it.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="christmas-timer/">
+        <span class="tool-icon" aria-hidden="true">🎄</span>
+        <span class="tool-body">
+          <span class="tool-name">Christmas Timer <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Work backwards from serving time so every dish lands on the table together.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="ev-charging-comparer/">
+        <span class="tool-icon" aria-hidden="true">🔌</span>
+        <span class="tool-body">
+          <span class="tool-name">EV Charging Comparer <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Compare home, destination and rapid chargers by price, speed and your car&#x27;s real limits.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="https://github.com/yayadrian/tools/tree/main/github-projects-sprints">
+        <span class="tool-icon" aria-hidden="true">🏃</span>
+        <span class="tool-body">
+          <span class="tool-name">GitHub Projects Sprints <span class="tool-kind">CLI</span></span>
+          <span class="tool-desc">Create sprint iterations in GitHub Projects v2 from a CSV file.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="hybrid-petrol-calculator/">
+        <span class="tool-icon" aria-hidden="true">⛽</span>
+        <span class="tool-body">
+          <span class="tool-name">Hybrid Petrol Calculator <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Estimate petrol and electric running costs per mile for a plug-in hybrid.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="https://github.com/yayadrian/tools/tree/main/jellyfin-watched-cleaner">
+        <span class="tool-icon" aria-hidden="true">🧹</span>
+        <span class="tool-body">
+          <span class="tool-name">Jellyfin Watched Cleaner <span class="tool-kind">CLI</span></span>
+          <span class="tool-desc">Delete already-watched videos from a Jellyfin library, dry-run by default.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="nutri-calculator/">
+        <span class="tool-icon" aria-hidden="true">🍞</span>
+        <span class="tool-body">
+          <span class="tool-name">Bread Nutrition Calculator <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Calories, protein and fibre per loaf and per slice for a bread recipe.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="parkrun-weather-advisor/">
+        <span class="tool-icon" aria-hidden="true">🌤️</span>
+        <span class="tool-body">
+          <span class="tool-name">parkrun Weather Advisor <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Check the forecast for your next parkrun and get told what to wear.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="quarters-of-the-year/">
+        <span class="tool-icon" aria-hidden="true">🕓</span>
+        <span class="tool-body">
+          <span class="tool-name">Quarters of the Year <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">A clock-style view of the four quarters with progress through the current one.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="rice-cooking-calculator/">
+        <span class="tool-icon" aria-hidden="true">🍚</span>
+        <span class="tool-body">
+          <span class="tool-name">Rice Cooking Calculator <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Get the right water-to-rice ratio for fluffy or softer basmati on an induction hob.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="treadmill-blackout/">
+        <span class="tool-icon" aria-hidden="true">🏋️</span>
+        <span class="tool-body">
+          <span class="tool-name">Treadmill Blackout <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Track a speed x incline grid and black out squares as you complete sessions.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="webcam-image-viewer/">
+        <span class="tool-icon" aria-hidden="true">📷</span>
+        <span class="tool-body">
+          <span class="tool-name">Webcam Image Viewer <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Keep a set of still-image webcams in one page and refresh them together.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="webcam-tiles/">
+        <span class="tool-icon" aria-hidden="true">🎥</span>
+        <span class="tool-body">
+          <span class="tool-name">Webcam Tiles <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Arrange one or more HLS webcam streams into tiles and watch them side by side.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="https://github.com/yayadrian/tools/tree/main/Workflow-to-GPX">
+        <span class="tool-icon" aria-hidden="true">🗺️</span>
+        <span class="tool-body">
+          <span class="tool-name">Workflow to GPX <span class="tool-kind">CLI</span></span>
+          <span class="tool-desc">Convert JSON location tracks into GPX files you can open in mapping apps.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="working-hours-calculator/">
+        <span class="tool-icon" aria-hidden="true">🗓️</span>
+        <span class="tool-body">
+          <span class="tool-name">Working Hours Calculator <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Design and compare two-week working patterns, saved in your browser.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="youtube-age-search/">
+        <span class="tool-icon" aria-hidden="true">📺</span>
+        <span class="tool-body">
+          <span class="tool-name">YouTube Age Search <span class="tool-kind">Web</span></span>
+          <span class="tool-desc">Search YouTube and only show videos older than a minimum age.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a class="tool" href="https://github.com/yayadrian/tools/tree/main/yt-playlist-to-music">
+        <span class="tool-icon" aria-hidden="true">🎵</span>
+        <span class="tool-body">
+          <span class="tool-name">YouTube Playlist to Music <span class="tool-kind">CLI</span></span>
+          <span class="tool-desc">Download playlists or videos as M4A audio with metadata and cover art.</span>
+        </span>
+      </a>
+    </li>
+    </ul>
+    <!-- TOOLS-LIST END -->
 
-  <!-- TOOLS-LIST START -->
-  <ul>
-    <li><a href="Workflow-to-GPX/">Workflow-to-GPX</a></li>
-    <li><a href="central-circle/">central-circle</a></li>
-    <li><a href="christmas-timer/">christmas-timer</a></li>
-    <li><a href="ev-charging-comparer/">ev-charging-comparer</a></li>
-    <li><a href="github-projects-sprints/">github-projects-sprints</a></li>
-    <li><a href="hybrid-petrol-calculator/">hybrid-petrol-calculator</a></li>
-    <li><a href="jellyfin-watched-cleaner/">jellyfin-watched-cleaner</a></li>
-    <li><a href="nutri-calculator/">nutri-calculator</a></li>
-    <li><a href="parkrun-weather-advisor/">parkrun-weather-advisor</a></li>
-    <li><a href="quarters-of-the-year/">quarters-of-the-year</a></li>
-    <li><a href="rice-cooking-calculator/">rice-cooking-calculator</a></li>
-    <li><a href="treadmill-blackout/">treadmill-blackout</a></li>
-    <li><a href="webcam-image-viewer/">webcam-image-viewer</a></li>
-    <li><a href="webcam-tiles/">webcam-tiles</a></li>
-    <li><a href="working-hours-calculator/">working-hours-calculator</a></li>
-    <li><a href="youtube-age-search/">youtube-age-search</a></li>
-    <li><a href="yt-playlist-to-music/">yt-playlist-to-music</a></li>
-  </ul>
-  <!-- TOOLS-LIST END -->
+    <footer>
+      Source on <a href="https://github.com/yayadrian/tools">GitHub</a>. Add a tool by creating a folder and describing it in <code>tools.json</code>.
+    </footer>
+  </main>
 </body>
 </html>

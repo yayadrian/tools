@@ -43,17 +43,18 @@ All tools follow the conventions outlined in [RULES.md](RULES.md):
 The repository includes:
 - Individual tool directories (each containing `index.html` and assets)
 - `index.html` - Auto-generated listing of all available tools  
+- `tools.json` - Icon, display name and one-line description for each tool
 - `update_index.py` - Script to automatically update the tools listing
 - `RULES.md` - Development guidelines and conventions
 
-Tools are automatically discovered and listed by scanning for directories in the repository root.
+Tools are automatically discovered and listed by scanning for directories in the repository root. Folders with an `index.html` link straight to the page; folders without one (Python CLI tools) link to their source on GitHub.
 
 ## Usage
 
 1. **Browse tools**: Visit the repository's [index page](index.html) to see all available tools
 2. **Use a tool**: Click on any tool name to open it
 3. **Run locally**: Clone the repository and open `index.html` in a web browser
-4. **Add a tool**: Create a new directory with an `index.html` file following the guidelines in `RULES.md`
+4. **Add a tool**: Create a new directory with an `index.html` file following the guidelines in `RULES.md`, then add an icon, name and description for it to `tools.json`
 
 ## License
 

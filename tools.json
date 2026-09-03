@@ -1,0 +1,87 @@
+{
+  "Workflow-to-GPX": {
+    "icon": "🗺️",
+    "name": "Workflow to GPX",
+    "description": "Convert JSON location tracks into GPX files you can open in mapping apps."
+  },
+  "central-circle": {
+    "icon": "🎯",
+    "name": "Central Circle",
+    "description": "Click a spot on the map to draw concentric distance rings around it."
+  },
+  "christmas-timer": {
+    "icon": "🎄",
+    "name": "Christmas Timer",
+    "description": "Work backwards from serving time so every dish lands on the table together."
+  },
+  "ev-charging-comparer": {
+    "icon": "🔌",
+    "name": "EV Charging Comparer",
+    "description": "Compare home, destination and rapid chargers by price, speed and your car's real limits."
+  },
+  "github-projects-sprints": {
+    "icon": "🏃",
+    "name": "GitHub Projects Sprints",
+    "description": "Create sprint iterations in GitHub Projects v2 from a CSV file."
+  },
+  "hybrid-petrol-calculator": {
+    "icon": "⛽",
+    "name": "Hybrid Petrol Calculator",
+    "description": "Estimate petrol and electric running costs per mile for a plug-in hybrid."
+  },
+  "jellyfin-watched-cleaner": {
+    "icon": "🧹",
+    "name": "Jellyfin Watched Cleaner",
+    "description": "Delete already-watched videos from a Jellyfin library, dry-run by default."
+  },
+  "nutri-calculator": {
+    "icon": "🍞",
+    "name": "Bread Nutrition Calculator",
+    "description": "Calories, protein and fibre per loaf and per slice for a bread recipe."
+  },
+  "parkrun-weather-advisor": {
+    "icon": "🌤️",
+    "name": "parkrun Weather Advisor",
+    "description": "Check the forecast for your next parkrun and get told what to wear."
+  },
+  "quarters-of-the-year": {
+    "icon": "🕓",
+    "name": "Quarters of the Year",
+    "description": "A clock-style view of the four quarters with progress through the current one."
+  },
+  "rice-cooking-calculator": {
+    "icon": "🍚",
+    "name": "Rice Cooking Calculator",
+    "description": "Get the right water-to-rice ratio for fluffy or softer basmati on an induction hob."
+  },
+  "treadmill-blackout": {
+    "icon": "🏋️",
+    "name": "Treadmill Blackout",
+    "description": "Track a speed x incline grid and black out squares as you complete sessions."
+  },
+  "webcam-image-viewer": {
+    "icon": "📷",
+    "name": "Webcam Image Viewer",
+    "description": "Keep a set of still-image webcams in one page and refresh them together."
+  },
+  "webcam-tiles": {
+    "icon": "🎥",
+    "name": "Webcam Tiles",
+    "description": "Arrange one or more HLS webcam streams into tiles and watch them side by side."
+  },
+  "working-hours-calculator": {
+    "icon": "🗓️",
+    "name": "Working Hours Calculator",
+    "description": "Design and compare two-week working patterns, saved in your browser."
+  },
+  "youtube-age-search": {
+    "icon": "📺",
+    "name": "YouTube Age Search",
+    "description": "Search YouTube and only show videos older than a minimum age."
+  },
+  "yt-playlist-to-music": {
+    "icon": "🎵",
+    "name": "YouTube Playlist to Music",
+    "description": "Download playlists or videos as M4A audio with metadata and cover art."
+  }
+}
