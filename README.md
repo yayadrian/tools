@@ -15,6 +15,7 @@ Each tool in this repository follows a philosophy of:
 ## Available Tools
 
 - [**nutri-calculator**](nutri-calculator/) - Calculate nutrition information for bread recipes, including calories, protein, and fiber per loaf and per slice
+- [**treadmill-blackout**](treadmill-blackout/) - Track a Treadmill Blackout speed x incline grid, with a heat map that makes easy squares need more sessions than hard ones before they black out
 
 ## Development Guidelines
 
